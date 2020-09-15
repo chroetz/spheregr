@@ -1,2 +1,4 @@
 ^spheregr\.Rproj$
 ^\.Rproj\.user$
+^codecov\.yml$
+^\.github$

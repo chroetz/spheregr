@@ -20,3 +20,5 @@ Imports:
     Rcpp,
     magrittr,
     pracma
+Suggests: 
+    covr
