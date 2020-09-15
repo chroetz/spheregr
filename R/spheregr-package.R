@@ -6,5 +6,6 @@
 ## usethis namespace: start
 #' @useDynLib spheregr, .registration = TRUE
 #' @importFrom Rcpp sourceCpp
+#' @importFrom lifecycle deprecate_soft
 ## usethis namespace: end
 NULL

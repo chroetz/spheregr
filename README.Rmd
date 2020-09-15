@@ -13,10 +13,12 @@ knitr::opts_chunk$set(
 )
 ```
 
-# spheregr
+# spheregr <img src="man/figures/logo.png" align="right" height="139" />
 
 <!-- badges: start -->
 [![R build status](https://github.com/ChristofSch/spheregr/workflows/R-CMD-check/badge.svg)](https://github.com/ChristofSch/spheregr/actions)
+[![CRAN status](https://www.r-pkg.org/badges/version/spheregr)](https://CRAN.R-project.org/package=spheregr)
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
 <!-- badges: end -->
 
 The goal of spheregr is to ...
