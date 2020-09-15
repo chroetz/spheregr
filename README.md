@@ -7,6 +7,8 @@
 
 [![R build
 status](https://github.com/ChristofSch/spheregr/workflows/R-CMD-check/badge.svg)](https://github.com/ChristofSch/spheregr/actions)
+[![Codecov test
+coverage](https://codecov.io/gh/ChristofSch/spheregr/branch/master/graph/badge.svg)](https://codecov.io/gh/r-lib/usethis?branch=master)
 [![CRAN
 status](https://www.r-pkg.org/badges/version/spheregr)](https://CRAN.R-project.org/package=spheregr)
 [![Lifecycle:
