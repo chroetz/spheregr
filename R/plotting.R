@@ -1,17 +1,18 @@
 striped_lines <- function(y, col, ...) {
-  lines(y, col=col[1], lend=1, ...)
+  lines(y, col = col[1], lend = 1, ...)
   n <- nrow(y)
   m <- 5
-  for (i in 1:(m-0))
-    lines(y[round(i*n/m - n/2/m):round(i*n/m),], col=col[2], lend=1, ...)
+  for (i in 1:(m - 0)) {
+    lines(y[round(i * n / m - n / 2 / m):round(i * n / m), ], col = col[2], lend = 1, ...)
+  }
 }
 
 lines_jump <- function(y, ...) {
   diffs <- rowMeans(apply(y, 2, diff)^2)
-  jumps <- which(diffs > 100*median(diffs[diffs!=0]))
+  jumps <- which(diffs > 100 * median(diffs[diffs != 0]))
   segms <- c(0, jumps, nrow(y))
-  for (i in 1:(length(segms)-1)) {
-    lines(y[(segms[i]+1):segms[i+1], ], lend=1, ...)
+  for (i in 1:(length(segms) - 1)) {
+    lines(y[(segms[i] + 1):segms[i + 1], ], lend = 1, ...)
   }
 }
 

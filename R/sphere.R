@@ -17,32 +17,34 @@ Exp <- function(p, v) {
 
 #' @param x,y nx2
 #' @return vector length n
-dist_angle <- function(x,y) {
-  x <- matrix(x, ncol=2)
-  y <- matrix(y, ncol=2)
-  acos(cos(x[,1])*cos(y[,1])+sin(x[,1])*sin(y[,1])*cos(y[,2]-x[,2]))
+dist_angle <- function(x, y) {
+  x <- matrix(x, ncol = 2)
+  y <- matrix(y, ncol = 2)
+  acos(cos(x[, 1]) * cos(y[, 1]) + sin(x[, 1]) * sin(y[, 1]) * cos(y[, 2] - x[, 2]))
 }
 
 #' @param x,y nx3
 #' @return vector length n
-dist <- function(x,y) {
-  x <- matrix(x, ncol=3)
-  y <- matrix(y, ncol=3)
-  acos(rowSums(x*y))
+dist <- function(x, y) {
+  x <- matrix(x, ncol = 3)
+  y <- matrix(y, ncol = 3)
+  acos(rowSums(x * y))
 }
 
 #' @param x nx2
 #' @return nx3
 angle2R3 <- function(x) {
-  x <- matrix(x, ncol=2)
-  cbind(sin(x[,1])*cos(x[,2]),
-        sin(x[,1])*sin(x[,2]),
-        cos(x[,1]))
+  x <- matrix(x, ncol = 2)
+  cbind(
+    sin(x[, 1]) * cos(x[, 2]),
+    sin(x[, 1]) * sin(x[, 2]),
+    cos(x[, 1])
+  )
 }
 
 #' @param x nx3
 #' @return nx2
 R32angle <- function(x) {
-  phi <- atan2(x[,2], x[,1])
-  cbind(acos(x[,3]), ifelse(phi >= 0, phi, phi+2*pi))
+  phi <- atan2(x[, 2], x[, 1])
+  cbind(acos(x[, 3]), ifelse(phi >= 0, phi, phi + 2 * pi))
 }
