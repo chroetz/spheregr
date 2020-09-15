@@ -65,5 +65,6 @@ estimate_cosine <- function(x, y, x_new, speed_bounds, restarts = 2) {
     estim_a[j, ] <- res$par
   }
 
-  convert_a2e(estim_a)
+  estim <- convert_a2e(estim_a)
+  list(estim=estim, estim_a=estim_a, speed=speed)
 }

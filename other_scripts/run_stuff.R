@@ -30,17 +30,18 @@ sphere_grid <- function(n=7) {
   }
 }
 
+
 run_linreg <- function(n=30, sd=0.3, speed_bounds = c(0, 10)) {
-  data <- sample_data(n, sd, x_eval=seq(0, 1, len=300), speed_bounds=speed_bounds)
-  speed_true <- sqrt(sum(data$v^2))
-  cat("speed:", speed_true,"\n")
+  p <- convert_a2e(c(2, 0))
+  v <- matrix(c(0, 6, 0), nrow=1)
+  data <- sample_data(n, sd, x_new=seq(0, 1, len=300), speed_bounds=speed_bounds,
+                      p = p, v = v)
+  cat("speed:", data$speed,"\n")
 
   res <- list()
-  for (meth in all_methods) {
+  for (meth in linreg_methods) {
     cat("method:",meth, "\t")
-    r <- list()
-    r$estim <- linreg(data$x, data$y, data$x_eval, method=meth, speed_bounds=speed_bounds)
-    r$estim_a <- convert_e2a(r$estim)
+    r <- linreg(data$x, data$y, data$x_new, method=meth, speed_bounds=speed_bounds)
     r$ise <- mean(dist(data$m, r$estim)^2)
     res[[meth]] <- r
   }
@@ -59,17 +60,36 @@ run_linreg <- function(n=30, sd=0.3, speed_bounds = c(0, 10)) {
 
   plot(NA, xlim=c(0, 1), ylim=c(0, 2*pi), xlab="t", ylab="phi")
   grid()
-  lines_jump(cbind(data$x_eval, data$m_a[,2]), col=2, lwd=2)
+  lines_jump(cbind(data$x_new, data$m_a[,2]), col=2, lwd=2)
   points(data$x, data$y_a[,2])
   for (meth in all_methods)
-    lines_jump(cbind(data$x_eval, res[[meth]]$estim_a[,2]), col=method_cols[[meth]], lwd=2)
+    lines_jump(cbind(data$x_new, res[[meth]]$estim_a[,2]), col=method_cols[[meth]], lwd=2)
 
   plot(NA, xlim=c(0, 1), ylim=c(0, pi), xlab="t", ylab="alpha")
   grid()
-  lines_jump(cbind(data$x_eval, data$m_a[,1]), col=2, lwd=2)
+  lines_jump(cbind(data$x_new, data$m_a[,1]), col=2, lwd=2)
   points(data$x, data$y_a[,1])
   for (meth in all_methods)
-    lines_jump(cbind(data$x_eval, res[[meth]]$estim_a[,1]), col=method_cols[[meth]], lwd=2)
+    lines_jump(cbind(data$x_new, res[[meth]]$estim_a[,1]), col=method_cols[[meth]], lwd=2)
 }
 
 
+
+
+
+opts <- create_linreg_opts(reps = 4)
+print(system.time(
+  sim_rand<- simulate(opts)
+))
+save(sim_rand, file=paste0("sim_rand_", format(Sys.time(), "%Y%m%d-%H%M%S")))
+
+
+
+opts <- create_linreg_opts(
+  reps = 3,
+  p = convert_a2e(c(2, 0)),
+  v = matrix(c(0, 1, 0), nrow=1))
+print(system.time(
+  sim_line <- simulate(opts)
+))
+save(sim_line, file=paste0("sim_line_", format(Sys.time(), "%Y%m%d-%H%M%S")))

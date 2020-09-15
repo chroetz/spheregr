@@ -14,7 +14,8 @@ Imports:
     magrittr,
     pracma,
     Rcpp,
-    lifecycle
+    lifecycle,
+    tibble
 Suggests: 
     covr,
     testthat

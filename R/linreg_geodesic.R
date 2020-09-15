@@ -65,5 +65,7 @@ exec_optim <- function(x, y, speed_bounds, restarts = 2) {
 #'   the geodesic
 estimate_geodesic <- function(x, y, x_new, speed_bounds, restarts = 2) {
   res <- exec_optim(x, y, speed_bounds, restarts)
-  Exp(res$p, x_new %*% res$v)
+  estim <- Exp(res$p, x_new %*% res$v)
+  estim_a <- convert_e2a(estim)
+  list(estim=estim, estim_a=estim_a, p=res$p, v=res$v)
 }
