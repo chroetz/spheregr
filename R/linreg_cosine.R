@@ -4,7 +4,7 @@
 #' @param y nx3 matrix, observations on sphere.
 #' @param q kx3 matrix, test points on sphere.
 #' @return double(1), estimated lambda
-cos_estim_speed <- function(x, y, q, max_speed = 10) {
+cos_estim_speed <- function(x, y, q, speed_bounds) {
   cos_dist_yq <- y %*% t(q)
   objective <- function(par) {
     X <- rbind(cos(par * x), sin(par * x))
@@ -12,28 +12,28 @@ cos_estim_speed <- function(x, y, q, max_speed = 10) {
     pars_ab <- solve(B, X) %*% cos_dist_yq
     mean((t(X) %*% pars_ab - cos_dist_yq)^2)
   }
-  optimize(objective, c(0, max_speed))
+  optimize(objective, speed_bounds)
 }
 
 
-cos_objective <- function(q_angle, BinvXy, x_new, speed) {
-  q <- angle2R3_1(q_angle)
+cos_objective <- function(q_a, BinvXy, x_new, speed) {
+  q <- convert_a2e_1(q_a)
   pars_ab <- BinvXy %*% q
   -(pars_ab[1] * cos(speed * x_new) + pars_ab[2] * sin(speed * x_new))
 }
 
 
-estimate_cosine <- function(x, y, x_new, restarts = 2, max_speed = 10) {
+estimate_cosine <- function(x, y, x_new, speed_bounds, restarts = 2) {
   # estimate speed
   N <- 2
   M <- 2
-  q_angle <- expand.grid(
+  q_a <- expand.grid(
     alpha = (0:(N - 1)) * pi / N + pi / N / 2,
     phi = (0:(M - 1)) * 2 * pi / M + 2 * pi / M / 2
   ) %>%
     as.matrix()
-  q <- angle2R3(q_angle)
-  res <- cos_estim_speed(x, y, q, max_speed = max_speed)
+  q <- convert_a2e(q_a)
+  res <- cos_estim_speed(x, y, q, speed_bounds)
   speed <- res$minimum
 
   # estimate m(t) via optim()
@@ -46,7 +46,7 @@ estimate_cosine <- function(x, y, x_new, restarts = 2, max_speed = 10) {
     phi = (0:(N - 1)) * 2 * pi / N + 2 * pi / N / 2
   ) %>%
     as.matrix()
-  estim_angle <- matrix(nrow = length(x_new), ncol = 2)
+  estim_a <- matrix(nrow = length(x_new), ncol = 2)
   for (j in seq_along(x_new)) {
     res_lst <- list()
     for (i in seq_len(nrow(initial_parameters))) {
@@ -62,8 +62,8 @@ estimate_cosine <- function(x, y, x_new, restarts = 2, max_speed = 10) {
     values <- sapply(res_lst, function(x) x$value)
     idx <- which.min(values)
     res <- res_lst[[idx]]
-    estim_angle[j, ] <- res$par
+    estim_a[j, ] <- res$par
   }
 
-  angle2R3(estim_angle)
+  convert_a2e(estim_a)
 }

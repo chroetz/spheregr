@@ -50,7 +50,7 @@ NumericVector get_v_rcpp(NumericVector x, NumericVector a) {
 //' @param x vetor length 2
 //' @return vector length 3
 // [[Rcpp::export]]
-NumericVector angle2R3_1(NumericVector x) {
+NumericVector convert_a2e_1(NumericVector x) {
   NumericVector out(3);
   out[0] = sin(x[0])*cos(x[1]);
   out[1] = sin(x[0])*sin(x[1]);

@@ -15,25 +15,25 @@ energy <- function(p, v, x, y) {
 }
 
 optim_fn <- function(par, x, y) {
-  p <- angle2R3_1(par[1:2])
+  p <- convert_a2e_1(par[1:2])
   v <- get_v_rcpp(p, par[3:4])
   dim(p) <- c(1L, 3L)
   dim(v) <- c(1L, 3L)
   energy(p, v, x, y)
 }
 
-get_initial_parameters <- function(max_speed, restarts = 2) {
+get_initial_parameters <- function(speed_bounds, restarts = 2) {
   expand.grid(
     alpha = c(pi / 3, 2 * pi / 3),
     phi = c(2 * pi / 3, 4 * pi / 3),
-    v1 = max_speed / 3 / sqrt(2) * c(1, -1),
-    v2 = max_speed / 3 / sqrt(2) * c(1, -1)
+    v1 = speed_bounds[2] / 3 / sqrt(2) * c(1, -1),
+    v2 = speed_bounds[2] / 3 / sqrt(2) * c(1, -1)
   ) %>%
     as.matrix()
 }
 
-exec_optim <- function(x, y, restarts = 2, max_speed = 10) {
-  initial_parameters <- get_initial_parameters(max_speed, restarts)
+exec_optim <- function(x, y, speed_bounds, restarts = 2) {
+  initial_parameters <- get_initial_parameters(speed_bounds, restarts)
   res_lst <- list()
   for (i in seq_len(nrow(initial_parameters))) {
     res_lst[[i]] <- optim(
@@ -41,14 +41,14 @@ exec_optim <- function(x, y, restarts = 2, max_speed = 10) {
       gr = NULL,
       x = x, y = y,
       method = "L-BFGS-B",
-      lower = c(0, 0, -max_speed, -max_speed),
-      upper = c(pi, 2 * pi, max_speed, max_speed)
+      lower = c(0, 0, -speed_bounds[2], -speed_bounds[2]),
+      upper = c(pi, 2 * pi, speed_bounds[2], speed_bounds[2])
     )
   }
   values <- sapply(res_lst, function(x) x$value)
   idx <- which.min(values)
   res <- res_lst[[idx]]
-  p <- angle2R3_1(res$par[1:2])
+  p <- convert_a2e_1(res$par[1:2])
   v <- get_v_rcpp(p, res$par[3:4])
   dim(p) <- c(1L, 3L)
   dim(v) <- c(1L, 3L)
@@ -63,7 +63,7 @@ exec_optim <- function(x, y, restarts = 2, max_speed = 10) {
 #'   estimated function
 #' @param max_speed a nonnegative scalar double, a bound on the maximum speed of
 #'   the geodesic
-estimate_geodesic <- function(x, y, x_new, restarts = 2, max_speed = 10) {
-  res <- exec_optim(x, y, restarts, max_speed)
+estimate_geodesic <- function(x, y, x_new, speed_bounds, restarts = 2) {
+  res <- exec_optim(x, y, speed_bounds, restarts)
   Exp(res$p, x_new %*% res$v)
 }

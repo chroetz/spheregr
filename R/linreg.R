@@ -1,27 +1,38 @@
-sample_data <- function(n, sd, speed_max) {
+sample_data <- function(n, sd, x_eval=NULL, speed_bounds) {
   x <- (1:n) / n
-  p_angle <- runif(2) * c(pi, 2 * pi)
-  p <- angle2R3(p_angle)
-  speed <- runif(1, min = 0, max = speed_max)
+  if (is.null(x_eval)) x_eval <- x
+  p_a <- matrix(runif(2) * c(pi, 2 * pi), ncol=2)
+  p <- convert_a2e(p_a)
+  speed <- runif(1, min = speed_bounds[1], max = speed_bounds[2])
   v <- norm_vec(t(pracma::nullspace(p) %*% rnorm(2))) * speed
-  y_true <- Exp(p, x %*% v)
-  y <- y_true
+  y <- Exp(p, x %*% v)
   for (i in 1:n) {
-    noise_dir <- norm_vec(t(pracma::nullspace(y_true[i, , drop = FALSE]) %*% rnorm(2)))
-    y[i, ] <- Exp(y_true[i, ], noise_dir * rnorm(1, sd = sd))
+    noise_dir <- norm_vec(t(pracma::nullspace(y[i, , drop = FALSE]) %*% rnorm(2)))
+    y[i, ] <- Exp(y[i, ], noise_dir * rnorm(1, sd = sd))
   }
-  list(x = x, y = y, p = p, v = v, y_true = y_true, speed = speed)
+  m <- Exp(p, x_eval %*% v)
+  list(
+    x = x,
+    x_eval = x_eval,
+    y = y,
+    y_a = convert_e2a(y),
+    p = p,
+    v = v,
+    m = m,
+    m_a = convert_e2a(m),
+    speed = speed)
 }
 
 
 
 linreg <- function(x, y, x_new,
                    method = c("frechet", "geodesic", "cosine"),
-                   restarts = 2, max_speed = 10) {
+                   speed_bounds = c(0, 10),
+                   restarts = 2) {
   method <- match.arg(method)
   switch(method,
     frechet = estimate_frechet(x, y, x_new, restarts),
-    geodesic = estimate_geodesic(x, y, x_new, restarts, max_speed = max_speed),
-    cosine = estimate_cosine(x, y, x_new, restarts, max_speed = max_speed)
+    geodesic = estimate_geodesic(x, y, x_new, speed_bounds, restarts),
+    cosine = estimate_cosine(x, y, x_new, speed_bounds, restarts)
   )
 }

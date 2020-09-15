@@ -12,12 +12,15 @@ Log <- function(q, p) {
 #' @return nx3
 Exp <- function(p, v) {
   nv <- row_norm3(v)
-  cos(nv) %*% p + sin(nv) * v / nv
+  res <- cos(nv) %*% p + sin(nv) * v / nv
+  b <- abs(nv) < 1e-8
+  res[b,] <- p
+  res
 }
 
 #' @param x,y nx2
 #' @return vector length n
-dist_angle <- function(x, y) {
+dist_a <- function(x, y) {
   x <- matrix(x, ncol = 2)
   y <- matrix(y, ncol = 2)
   acos(cos(x[, 1]) * cos(y[, 1]) + sin(x[, 1]) * sin(y[, 1]) * cos(y[, 2] - x[, 2]))
@@ -33,7 +36,7 @@ dist <- function(x, y) {
 
 #' @param x nx2
 #' @return nx3
-angle2R3 <- function(x) {
+convert_a2e <- function(x) {
   x <- matrix(x, ncol = 2)
   cbind(
     sin(x[, 1]) * cos(x[, 2]),
@@ -44,7 +47,7 @@ angle2R3 <- function(x) {
 
 #' @param x nx3
 #' @return nx2
-R32angle <- function(x) {
+convert_e2a <- function(x) {
   phi <- atan2(x[, 2], x[, 1])
   cbind(acos(x[, 3]), ifelse(phi >= 0, phi, phi + 2 * pi))
 }

@@ -17,21 +17,21 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// angle2R3_1
-NumericVector angle2R3_1(NumericVector x);
-RcppExport SEXP _spheregr_angle2R3_1(SEXP xSEXP) {
+// convert_a2e_1
+NumericVector convert_a2e_1(NumericVector x);
+RcppExport SEXP _spheregr_convert_a2e_1(SEXP xSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(angle2R3_1(x));
+    rcpp_result_gen = Rcpp::wrap(convert_a2e_1(x));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
     {"_spheregr_get_v_rcpp", (DL_FUNC) &_spheregr_get_v_rcpp, 2},
-    {"_spheregr_angle2R3_1", (DL_FUNC) &_spheregr_angle2R3_1, 1},
+    {"_spheregr_convert_a2e_1", (DL_FUNC) &_spheregr_convert_a2e_1, 1},
     {NULL, NULL, 0}
 };
 

@@ -1,174 +1,75 @@
+all_methods <- c("frechet", "geodesic", "cosine")
+method_cols <- list(
+  frechet = rgb(0,0,1),
+  geodesic = rgb(0,1,0),
+  cosine = rgb(0,1,1))
 
-run_geodesic_reg <- function() {
-  speed_max <- 10
-  n <- 30
-  data <- sample_data(n=n, sd=0.3, speed_max=speed_max)
-  x <- data$x
-  y <- data$y
-  y_angle <- R32angle(y)
-  x_true <- x
-  y_true <- data$y_true
-  y_true_angle <- R32angle(y_true)
-  p_true <- data$p
-  v_true <- data$v
-  speed_true <- sqrt(sum(v_true^2))
+sphere_grid <- function(n=7) {
+  x <- matrix(seq(0, pi/2, len=100), ncol=1)
+  for (phi in seq(0, 2*pi, len=n)) {
+    p <- convert_a2e(c(pi/2, phi))
 
-  estim <- estimate_geodesic(x, y, x_true)
-  estim_angle <- R32angle(estim)
+    v <- c(0, 0, 1)
+    y <- Exp(p, x %*% v)
+    y_a <- convert_e2a(y)
+    lines(y_a, col="gray")
+    v <- c(0, 0, -1)
+    y <- Exp(p, x %*% v)
+    y_a <- convert_e2a(y)
+    lines(y_a, col="gray")
+  }
 
-  ise <- mean(dist_angle(y_true_angle, estim_angle)^2)
-  cat("ISE:",ise, "\tspeed:", speed_true,"\n")
+  x <- matrix(seq(0, 2*pi, len=100), ncol=1)
+  for (alpha in seq(pi/2/n, pi-pi/2/n, len=n)) {
+    p <- convert_a2e(c(alpha, 0))
 
-  plot(NA, pch=".",
-       xlim=c(0, pi), ylim=c(0, 2*pi),
-       xlab="alpha", ylab="phi", col="gray")
-  striped_lines(y_true_angle, col=stripes_red, lwd=3)
-  lines_jump(y_angle, col=rgb(0,0,0,0.3))
-  points(y_angle)
-  striped_lines(estim_angle, col=stripes_green, lwd=3)
-
-  plot(NA, xlim=c(0, 1), ylim=c(0, 2*pi), xlab="t", ylab="phi")
-  grid()
-  lines_jump(cbind(x_true, y_true_angle[,2]), col=2, lwd=2)
-  points(x, y_angle[,2])
-  lines_jump(cbind(x_true, estim_angle[,2]), col=3, lwd=2)
-
-  plot(NA, xlim=c(0, 1), ylim=c(0, pi), xlab="t", ylab="alpha")
-  grid()
-  lines_jump(cbind(x_true, y_true_angle[,1]), col=2, lwd=2)
-  points(x, y_angle[,1])
-  lines_jump(cbind(x_true, estim_angle[,1]), col=3, lwd=2)
+    v <- c(0, 1, 0)
+    y <- Exp(p, x %*% v)
+    y_a <- convert_e2a(y)
+    lines(y_a, col="gray")
+  }
 }
 
-
-run_frechet_reg <- function() {
-
-  speed_max <- 10
-  n <- 30
-  data <- sample_data(n=n, sd=0.3, speed_max=speed_max)
-  x <- data$x
-  y <- data$y
-  y_angle <- R32angle(y)
-  x_true <- x
-  y_true <- data$y_true
-  y_true_angle <- R32angle(y_true)
-  p_true <- data$p
-  v_true <- data$v
-  speed_true <- sqrt(sum(v_true^2))
-
-  estim <- estimate_frechet(x, y, x_true)
-  estim_angle <- R32angle(estim)
-
-  ise <- mean(dist_angle(y_true_angle, estim_angle)^2)
-  cat("ISE:",ise, "\tspeed:", speed_true,"\n")
-
-  plot(NA, pch=".",
-       xlim=c(0, pi), ylim=c(0, 2*pi),
-       xlab="alpha", ylab="phi", col="gray")
-  striped_lines(y_true_angle, col=stripes_red, lwd=3)
-  lines_jump(y_angle, col=rgb(0,0,0,0.3))
-  points(y_angle)
-  striped_lines(estim_angle, col=stripes_green, lwd=3)
-
-  plot(NA, xlim=c(0, 1), ylim=c(0, 2*pi), xlab="t", ylab="phi")
-  grid()
-  lines_jump(cbind(x_true, y_true_angle[,2]), col=2, lwd=2)
-  points(x, y_angle[,2])
-  lines_jump(cbind(x_true, estim_angle[,2]), col=3, lwd=2)
-
-  plot(NA, xlim=c(0, 1), ylim=c(0, pi), xlab="t", ylab="alpha")
-  grid()
-  lines_jump(cbind(x_true, y_true_angle[,1]), col=2, lwd=2)
-  points(x, y_angle[,1])
-  lines_jump(cbind(x_true, estim_angle[,1]), col=3, lwd=2)
-}
-
-run_cosine_reg <- function() {
-  speed_max <- 10
-  n <- 30
-  data <- sample_data(n=n, sd=0.3, speed_max=speed_max)
-  x <- data$x
-  y <- data$y
-  y_angle <- R32angle(y)
-  x_true <- x
-  y_true <- data$y_true
-  y_true_angle <- R32angle(y_true)
-  p_true <- data$p
-  v_true <- data$v
-  speed_true <- sqrt(sum(v_true^2))
-
-  estim <- estimate_cosine(x, y, x_true)
-  estim_angle <- R32angle(estim)
-
-  ise <- mean(dist_angle(y_true_angle, estim_angle)^2)
-  cat("ISE:",ise, "\tspeed:", speed_true,"\n")
-
-  plot(NA, pch=".",
-       xlim=c(0, pi), ylim=c(0, 2*pi),
-       xlab="alpha", ylab="phi", col="gray")
-  striped_lines(y_true_angle, col=stripes_red, lwd=3)
-  lines_jump(y_angle, col=rgb(0,0,0,0.3))
-  points(y_angle)
-  striped_lines(estim_angle, col=stripes_green, lwd=3)
-
-  plot(NA, xlim=c(0, 1), ylim=c(0, 2*pi), xlab="t", ylab="phi")
-  grid()
-  lines_jump(cbind(x_true, y_true_angle[,2]), col=2, lwd=2)
-  points(x, y_angle[,2])
-  lines_jump(cbind(x_true, estim_angle[,2]), col=3, lwd=2)
-
-  plot(NA, xlim=c(0, 1), ylim=c(0, pi), xlab="t", ylab="alpha")
-  grid()
-  lines_jump(cbind(x_true, y_true_angle[,1]), col=2, lwd=2)
-  points(x, y_angle[,1])
-  lines_jump(cbind(x_true, estim_angle[,1]), col=3, lwd=2)
-}
-
-
-
-run_linreg_reg <- function() {
-  speed_max <- 10
-  n <- 30
-  data <- sample_data(n=n, sd=0.3, speed_max=speed_max)
-  x <- data$x
-  y <- data$y
-  y_angle <- R32angle(y)
-  x_true <- x
-  y_true <- data$y_true
-  y_true_angle <- R32angle(y_true)
-  p_true <- data$p
-  v_true <- data$v
-  speed_true <- sqrt(sum(v_true^2))
+run_linreg <- function(n=30, sd=0.3, speed_bounds = c(0, 10)) {
+  data <- sample_data(n, sd, x_eval=seq(0, 1, len=300), speed_bounds=speed_bounds)
+  speed_true <- sqrt(sum(data$v^2))
   cat("speed:", speed_true,"\n")
 
-  for (m in c("frechet", "geodesic", "cosine")) {
-    cat("method:",m, "\t")
-    estim <- linreg(x, y, x_true, method=m)
-    estim_angle <- R32angle(estim)
-
-    ise <- mean(dist_angle(y_true_angle, estim_angle)^2)
-    cat("ISE:",ise, "\n")
-
-    plot(NA, pch=".",
-         xlim=c(0, pi), ylim=c(0, 2*pi),
-         xlab="alpha", ylab="phi", col="gray")
-    striped_lines(y_true_angle, col=stripes_red, lwd=3)
-    lines_jump(y_angle, col=rgb(0,0,0,0.3))
-    points(y_angle)
-    striped_lines(estim_angle, col=stripes_green, lwd=3)
-
-    plot(NA, xlim=c(0, 1), ylim=c(0, 2*pi), xlab="t", ylab="phi")
-    grid()
-    lines_jump(cbind(x_true, y_true_angle[,2]), col=2, lwd=2)
-    points(x, y_angle[,2])
-    lines_jump(cbind(x_true, estim_angle[,2]), col=3, lwd=2)
-
-    plot(NA, xlim=c(0, 1), ylim=c(0, pi), xlab="t", ylab="alpha")
-    grid()
-    lines_jump(cbind(x_true, y_true_angle[,1]), col=2, lwd=2)
-    points(x, y_angle[,1])
-    lines_jump(cbind(x_true, estim_angle[,1]), col=3, lwd=2)
+  res <- list()
+  for (meth in all_methods) {
+    cat("method:",meth, "\t")
+    r <- list()
+    r$estim <- linreg(data$x, data$y, data$x_eval, method=meth, speed_bounds=speed_bounds)
+    r$estim_a <- convert_e2a(r$estim)
+    r$ise <- mean(dist(data$m, r$estim)^2)
+    res[[meth]] <- r
   }
+
+  plot(NA,
+       xlim=c(0, pi), ylim=c(0, 2*pi),
+       xlab="alpha", ylab="phi", col="gray")
+  sphere_grid()
+  striped_lines(data$m_a, col="red", lwd=3)
+  #lines_jump(data$y_a, col=rgb(0,0,0,0.3))
+  points(data$y_a)
+  for (meth in all_methods) {
+    striped_lines(res[[meth]]$estim_a, col=method_cols[[meth]], lwd=3)
+    # points(res[[meth]]$estim_a, col=method_cols[[meth]])
+  }
+
+  plot(NA, xlim=c(0, 1), ylim=c(0, 2*pi), xlab="t", ylab="phi")
+  grid()
+  lines_jump(cbind(data$x_eval, data$m_a[,2]), col=2, lwd=2)
+  points(data$x, data$y_a[,2])
+  for (meth in all_methods)
+    lines_jump(cbind(data$x_eval, res[[meth]]$estim_a[,2]), col=method_cols[[meth]], lwd=2)
+
+  plot(NA, xlim=c(0, 1), ylim=c(0, pi), xlab="t", ylab="alpha")
+  grid()
+  lines_jump(cbind(data$x_eval, data$m_a[,1]), col=2, lwd=2)
+  points(data$x, data$y_a[,1])
+  for (meth in all_methods)
+    lines_jump(cbind(data$x_eval, res[[meth]]$estim_a[,1]), col=method_cols[[meth]], lwd=2)
 }
 
 

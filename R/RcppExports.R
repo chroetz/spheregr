@@ -14,7 +14,7 @@ get_v_rcpp <- function(x, a) {
 #'
 #' @param x vetor length 2
 #' @return vector length 3
-angle2R3_1 <- function(x) {
-    .Call(`_spheregr_angle2R3_1`, x)
+convert_a2e_1 <- function(x) {
+    .Call(`_spheregr_convert_a2e_1`, x)
 }
 
