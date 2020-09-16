@@ -38,7 +38,7 @@ frechet_mean <- function(y_a, restarts=2) {
   values <- sapply(res_lst, function(x) x$value)
   idx <- which.min(values)
   res <- res_lst[[idx]]
-  res$par
+  c(alpha=res$par[1], phi=res$par[2], var=res$value)
 }
 
 
@@ -47,25 +47,33 @@ load("sim_line")
 
 # bias variance plots
 
-s <- sim_line[[1]]
-geodesic_a <- array(NA, dim=c(
+s <- sim_line[[11]]
+estims_a <- array(NA, dim=c(
   samples = length(s[[1]]$x_new),
   dims = 2,
   reps = length(s))
 )
-for (i in seq_along(s)) {
-  geodesic_a[,,i] <- s[[i]]$geodesic$estim_a
-}
-mean_a <- t(apply(geodesic_a, 1, function(x) frechet_mean(t(x))))
-
-
 plot(NA,
-     xlim=c(0, pi), ylim=c(0, 2*pi),
-     xlab="alpha", ylab="phi", col="gray")
+     xlim=c(0, 2*pi), ylim=c(0, pi),
+     xlab="phi", ylab="alpha")
 sphere_grid()
-striped_lines(mean_a, col="red", lwd=3)
-striped_lines(s[[1]]$m_a, col="gray", lwd=3)
-for (i in 1:3) {
-  striped_lines(geodesic_a[,,i], col=method_cols[[i]], lwd=3)
+striped_lines(s[[1]]$m_a[,2:1], col="gray", lwd=3)
+for (meth in linreg_methods) {
+  for (i in seq_along(s)) {
+    estims_a[,,i] <- s[[i]][[meth]]$estim_a
+  }
+  mean_a_and_var <- t(apply(estims_a, 1, function(x) frechet_mean(t(x))))
+  mean_a <- mean_a_and_var[,1:2]
+  geo_sd <- sqrt(mean_a_and_var[,3])
+
+#  plot(s[[1]]$x_new, geo_sd)
+  striped_lines(mean_a[,2:1], col=method_cols[[meth]], lwd=3)
 }
+
+# for (i in 1:10) {
+#   striped_lines(geodesic_a[,,i], col=rgb(0,1,0,0.5), lwd=1)
+# }
+
+plot(s[[1]]$x_new, s[[1]]$m_a[,1])
+plot(s[[1]]$x_new, s[[1]]$m_a[,2])
 

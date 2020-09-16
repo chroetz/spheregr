@@ -1,34 +1,7 @@
-all_methods <- c("frechet", "geodesic", "cosine")
 method_cols <- list(
   frechet = rgb(0,0,1),
   geodesic = rgb(0,1,0),
   cosine = rgb(0,1,1))
-
-sphere_grid <- function(n=7) {
-  x <- matrix(seq(0, pi/2, len=100), ncol=1)
-  for (phi in seq(0, 2*pi, len=n)) {
-    p <- convert_a2e(c(pi/2, phi))
-
-    v <- c(0, 0, 1)
-    y <- Exp(p, x %*% v)
-    y_a <- convert_e2a(y)
-    lines(y_a, col="gray")
-    v <- c(0, 0, -1)
-    y <- Exp(p, x %*% v)
-    y_a <- convert_e2a(y)
-    lines(y_a, col="gray")
-  }
-
-  x <- matrix(seq(0, 2*pi, len=100), ncol=1)
-  for (alpha in seq(pi/2/n, pi-pi/2/n, len=n)) {
-    p <- convert_a2e(c(alpha, 0))
-
-    v <- c(0, 1, 0)
-    y <- Exp(p, x %*% v)
-    y_a <- convert_e2a(y)
-    lines(y_a, col="gray")
-  }
-}
 
 
 run_linreg <- function(n=30, sd=0.3, speed_bounds = c(0, 10)) {
@@ -75,18 +48,19 @@ run_linreg <- function(n=30, sd=0.3, speed_bounds = c(0, 10)) {
 
 
 
+set.seed(1)
 
-
-opts <- create_linreg_opts(reps = 4)
+opts <- create_linreg_opts(reps = 1000)
 print(system.time(
   sim_rand<- simulate(opts)
 ))
 save(sim_rand, file=paste0("sim_rand_", format(Sys.time(), "%Y%m%d-%H%M%S")))
 
 
+set.seed(1)
 
 opts <- create_linreg_opts(
-  reps = 3,
+  reps = 1000,
   p = convert_a2e(c(2, 0)),
   v = matrix(c(0, 1, 0), nrow=1))
 print(system.time(
