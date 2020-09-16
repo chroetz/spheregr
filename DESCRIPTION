@@ -15,7 +15,8 @@ Imports:
     pracma,
     Rcpp,
     lifecycle,
-    tibble
+    tibble,
+    stats
 Suggests: 
     covr,
     testthat

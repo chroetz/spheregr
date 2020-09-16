@@ -25,7 +25,7 @@ estimate_frechet <- function(x, y, x_new, restarts = 2) {
     X_eval_t <- cbind(1, x_new[j])
     res_lst <- list()
     for (i in seq_len(nrow(initial_parameters))) {
-      res_lst[[i]] <- optim(
+      res_lst[[i]] <- stats::optim(
         initial_parameters[i, ], frechet_objective,
         gr = NULL,
         X = X, y_a = y_a, X_eval_t = X_eval_t, yo = yo, B_inv = B_inv,

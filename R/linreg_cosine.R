@@ -12,7 +12,7 @@ cos_estim_speed <- function(x, y, q, speed_bounds) {
     pars_ab <- solve(B, X) %*% cos_dist_yq
     mean((t(X) %*% pars_ab - cos_dist_yq)^2)
   }
-  optimize(objective, speed_bounds)
+  stats::optimize(objective, speed_bounds)
 }
 
 
@@ -50,7 +50,7 @@ estimate_cosine <- function(x, y, x_new, speed_bounds, restarts = 2) {
   for (j in seq_along(x_new)) {
     res_lst <- list()
     for (i in seq_len(nrow(initial_parameters))) {
-      res_lst[[i]] <- optim(
+      res_lst[[i]] <- stats::optim(
         initial_parameters[i, ], cos_objective,
         gr = NULL,
         BinvXy = BinvXy, x_new = x_new[j], speed = speed,

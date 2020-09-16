@@ -36,7 +36,7 @@ exec_optim <- function(x, y, speed_bounds, restarts = 2) {
   initial_parameters <- get_initial_parameters(speed_bounds, restarts)
   res_lst <- list()
   for (i in seq_len(nrow(initial_parameters))) {
-    res_lst[[i]] <- optim(
+    res_lst[[i]] <- stats::optim(
       initial_parameters[i, ], optim_fn,
       gr = NULL,
       x = x, y = y,

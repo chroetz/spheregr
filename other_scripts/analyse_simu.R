@@ -26,7 +26,7 @@ frechet_mean <- function(y_a, restarts=2) {
     as.matrix()
   res_lst <- list()
   for (i in seq_len(nrow(initial_parameters))) {
-    res_lst[[i]] <- optim(
+    res_lst[[i]] <- stats::optim(
       initial_parameters[i, ], frechet_mean_objective,
       gr = NULL,
       y_a = y_a,

@@ -2,5 +2,6 @@
 
 export("%>%")
 importFrom(Rcpp,sourceCpp)
+importFrom(lifecycle,deprecate_soft)
 importFrom(magrittr,"%>%")
 useDynLib(spheregr, .registration = TRUE)
