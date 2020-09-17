@@ -1,3 +1,12 @@
+#' @export
+linreg_methods <- c("frechet", "geodesic", "cosine")
+
+#' @export
+method_colors <- list(
+  frechet = rgb(1,0,0),
+  geodesic = rgb(0,1,0),
+  cosine = rgb(0,0,1))
+
 
 #' Sample regression data from a geodesic model with normal noise.
 #'
@@ -65,7 +74,6 @@ linreg <- function(x, y, x_new,
   )
 }
 
-linreg_methods <- c("frechet", "geodesic", "cosine")
 
 run_one <- function(opt) {
   data <- sample_data(opt$n, opt$sd, x_new=opt$x_new, speed_bounds=opt$speed, v=opt$v, p=opt$p)

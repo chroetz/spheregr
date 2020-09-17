@@ -1,3 +1,7 @@
+striped_lines_a <- function(xy, ...) {
+  striped_lines(xy[, 2:1], ...)
+}
+
 striped_lines <- function(xy, col, ...) {
   rgba <- col2rgb(col, alpha=TRUE)
   col_dark <- rgb(rgba[1]/2, rgba[2]/2, rgba[3]/2, rgba[4], maxColorValue=255)
@@ -45,6 +49,62 @@ sphere_grid <- function(n=7) {
     y <- Exp(p, x %*% v)
     y_a <- convert_e2a(y)
     lines(y_a[,2:1], col="gray")
+  }
+}
+
+
+#' @export
+sim_plot_run <- function(run) {
+  plot(NA,
+       xlim=c(0, 2*pi), ylim=c(0, pi),
+       xlab="phi", ylab="alpha")
+  sphere_grid()
+  striped_lines_a(run$m_a, col="gray", lwd=3)
+  points(run$y_a[, 2:1])
+  for (meth in linreg_methods)
+    striped_lines_a(run[[meth]]$estim_a, col=method_colors[[meth]], lwd=2)
+  legend("topright", col=unlist(method_colors), lwd=2, legend=linreg_methods)
+}
+
+
+#' @export
+sim_plot_biasvar <- function(sim) {
+  estims_a <- array(NA, dim=c(
+    samples = length(sim[[1]]$x_new),
+    dims = 2,
+    reps = length(sim))
+  )
+  mean_curves <- list()
+  for (meth in linreg_methods) {
+    for (i in seq_along(sim)) {
+      estims_a[,,i] <- sim[[i]][[meth]]$estim_a
+    }
+    mean_curves[[meth]] <- t(apply(estims_a, 1, function(x) frechet_mean(t(x))))
+  }
+
+  x_new <- sim[[1]]$x_new
+  m_a <- sim[[1]]$m_a
+
+  par(mfrow=c(3,1), mar=c(0,4,1,1))
+  plot(NA, xlim=c(0, 1), ylim=c(0, pi), xlab=NA, ylab="alpha", xaxt='n')
+  grid()
+  lines_jump(cbind(x_new, m_a[,1]), col="gray", lwd=3)
+  for (meth in linreg_methods) {
+    lines_jump(cbind(x_new, mean_curves[[meth]][,1]), col=method_colors[[meth]], lwd=3)
+  }
+
+  plot(NA, xlim=c(0, 1), ylim=c(0, 2*pi), xlab=NA, ylab="phi", xaxt='n')
+  grid()
+  lines_jump(cbind(x_new, m_a[,2]), col="gray", lwd=3)
+  for (meth in linreg_methods) {
+    lines_jump(cbind(x_new, mean_curves[[meth]][,2]), col=method_colors[[meth]], lwd=3)
+  }
+
+  par(mar=c(4,4,1,1))
+  plot(NA, xlim=c(0, 1), ylim=c(0, 2), xlab="x", ylab="sd")
+  grid()
+  for (meth in linreg_methods) {
+    lines_jump(cbind(x_new, sqrt(mean_curves[[meth]][,3])), col=method_colors[[meth]], lwd=3)
   }
 }
 

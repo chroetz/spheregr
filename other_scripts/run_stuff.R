@@ -1,7 +1,4 @@
-method_cols <- list(
-  frechet = rgb(0,0,1),
-  geodesic = rgb(0,1,0),
-  cosine = rgb(0,1,1))
+
 
 
 run_linreg <- function(n=30, sd=0.3, speed_bounds = c(0, 10)) {
@@ -48,22 +45,3 @@ run_linreg <- function(n=30, sd=0.3, speed_bounds = c(0, 10)) {
 
 
 
-set.seed(1)
-
-opts <- create_linreg_opts(reps = 1000)
-print(system.time(
-  sim_rand<- simulate(opts)
-))
-save(sim_rand, file=paste0("sim_rand_", format(Sys.time(), "%Y%m%d-%H%M%S")))
-
-
-set.seed(1)
-
-opts <- create_linreg_opts(
-  reps = 1000,
-  p = convert_a2e(c(2, 0)),
-  v = matrix(c(0, 1, 0), nrow=1))
-print(system.time(
-  sim_line <- simulate(opts)
-))
-save(sim_line, file=paste0("sim_line_", format(Sys.time(), "%Y%m%d-%H%M%S")))
