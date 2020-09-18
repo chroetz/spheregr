@@ -101,7 +101,10 @@ sim_plot_biasvar <- function(sim) {
   }
 
   par(mar=c(4,4,1,1))
-  plot(NA, xlim=c(0, 1), ylim=c(0, 2), xlab="x", ylab="sd")
+  sd_max <- max(sapply(linreg_methods, function(meth) {
+    max(sqrt(mean_curves[[meth]][,3]))
+  }))
+  plot(NA, xlim=c(0, 1), ylim=c(0, sd_max), xlab="x", ylab="sd")
   grid()
   for (meth in linreg_methods) {
     lines_jump(cbind(x_new, sqrt(mean_curves[[meth]][,3])), col=method_colors[[meth]], lwd=3)
