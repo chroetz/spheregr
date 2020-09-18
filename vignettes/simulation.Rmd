@@ -1,0 +1,68 @@
+---
+title: "simulation"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{simulation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(spheregr)
+```
+
+
+
+```{r eval=FALSE}
+set.seed(1)
+opts <- create_linreg_opts(reps = 1000)
+print(system.time(
+  sim_rand<- simulate(opts)
+))
+save(sim_rand, file="sim_rand")
+```
+```{r}
+load("sim_rand")
+```
+```{r}
+# mise
+ise_stats <- sim_extract_ise_stats(sim_rand)
+mise_table_from_ise_stats(ise_stats, c("mean", "sd"))
+```
+```{r}
+# speed
+sim_extract_speed_mse(sim_rand)
+```
+
+
+```{r eval=FALSE}
+set.seed(1)
+opts <- create_linreg_opts(
+  reps = 1000,
+  p = convert_a2e(c(2, 0)),
+  v = matrix(c(0, 1, 0), nrow=1))
+print(system.time(
+  sim_line <- simulate(opts)
+))
+save(sim_line, file="sim_line")
+```
+```{r}
+load("sim_line")
+```
+```{r}
+# median curves
+ise_stats <- sim_extract_ise_stats(sim_line)
+
+idx <- 11
+sim <- sim_line[[idx]]
+idx_median <- ise_stats[[idx]]$idx_median
+for (meth in linreg_methods)
+  sim_plot_run(sim_line[[idx]][[idx_median[[meth]] ]])
+```

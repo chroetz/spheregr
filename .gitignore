@@ -1,3 +1,6 @@
 .Rproj.user
 .Rhistory
 .RData
+inst/doc
+/sim_line
+/sim_rand
