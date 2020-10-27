@@ -38,12 +38,9 @@ sample_data <- function(n, sd, x_new=NULL, speed_bounds=NULL, p=NULL, v=NULL) {
     if (!is.null(speed_target)) v <- v * speed_target / sqrt(sum(v^2))
   }
   speed <- sqrt(sum(v^2))
-  y <- Exp(p, x %*% v)
-  for (i in 1:n) {
-    noise_dir <- norm_vec(t(pracma::nullspace(y[i, , drop = FALSE]) %*% rnorm(2)))
-    y[i, ] <- Exp(y[i, ], noise_dir * rnorm(1, sd = sd))
-  }
   m <- Exp(p, x_new %*% v)
+  y <- add_noise_normal(Exp(p, x %*% v), sd)
+
   list(
     x = x,
     x_new = x_new,
