@@ -1,3 +1,34 @@
+#' @export
+plot_mercator_base <- function() {
+  plot(NA, ylim=c(0, pi), xlim=c(0, 2*pi), ylab="theta", xlab="phi")
+  sphere_grid()
+}
+
+#' @export
+lines_mercator <- function(y_a=NULL, y=NULL, palette=rainbow, ...) {
+  if (is.null(y_a)) y_a <- convert_e2a(y)
+  colors <- palette(nrow(y_a)-1)
+  for (i in 1:(nrow(y_a)-1)) {
+    phi <- y_a[i:(i+1),2]
+    theta <- y_a[i:(i+1),1]
+    if (phi[1] < 1 & phi[2] > 2*pi-1) {
+      lines(c(phi[1],phi[2]-2*pi), theta, col=colors[i], ...)
+      lines(c(phi[1]+2*pi,phi[2]), theta, col=colors[i], ...)
+    } else if (phi[2] < 1 & phi[1] > 2*pi-1) {
+      lines(c(phi[1],phi[2]+2*pi), theta, col=colors[i], ...)
+      lines(c(phi[1]-2*pi,phi[2]), theta, col=colors[i], ...)
+    } else {
+      lines(phi, theta, col=colors[i], ...)
+    }
+  }
+}
+
+#' @export
+points_mercator <- function(y_a=NULL, y=NULL, palette=rainbow, ...) {
+  if (is.null(y_a)) y_a <- convert_e2a(y)
+  points(y_a[,2:1], col=palette(nrow(y_a)), ...)
+}
+
 striped_lines_a <- function(xy, ...) {
   striped_lines(xy[, 2:1], ...)
 }

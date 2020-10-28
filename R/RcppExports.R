@@ -18,3 +18,11 @@ convert_a2e_1 <- function(x) {
     .Call(`_spheregr_convert_a2e_1`, x)
 }
 
+#' Clamp vector to interval [-1, 1].
+#'
+#' @param x Numeric vector.
+#' @return Numeric vector with values in [-1, 1].
+clamp1 <- function(x) {
+    .Call(`_spheregr_clamp1`, x)
+}
+

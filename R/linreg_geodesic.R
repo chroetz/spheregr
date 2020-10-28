@@ -8,7 +8,7 @@ energy <- function(p, v, x, y) {
   norm_z <- sqrt(.Internal(rowSums(z^2, n, 3L, FALSE)))
   co <- .Internal(tcrossprod(y, p)) * cos(norm_z) # nx1
   si <- .Internal(rowSums(y * z, n, 3L, FALSE)) / norm_z * sin(norm_z) # nx1s
-  s <- crop1(co + si)
+  s <- clamp1(co + si)
   .Internal(mean(acos(s)^2)) / 2
   # should be same as
   # res2 <- mean(dist_sphere_R3(Exp(p, z), y)^2) / 2

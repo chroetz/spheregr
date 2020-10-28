@@ -28,10 +28,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// clamp1
+NumericVector clamp1(NumericVector x);
+RcppExport SEXP _spheregr_clamp1(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(clamp1(x));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_spheregr_get_v_rcpp", (DL_FUNC) &_spheregr_get_v_rcpp, 2},
     {"_spheregr_convert_a2e_1", (DL_FUNC) &_spheregr_convert_a2e_1, 1},
+    {"_spheregr_clamp1", (DL_FUNC) &_spheregr_clamp1, 1},
     {NULL, NULL, 0}
 };
 
