@@ -20,7 +20,7 @@ locgeo_optim_fn <- function(par, x, y, w) {
   locgeo_energy(p, v, x, y, w)
 }
 
-#' @param accuracy doubble in [0,1]. trade optimization accuracy for
+#' @param accuracy double in [0,1]. trade optimization accuracy for
 #'   computational speed
 locgeo_optim <- function(x, y, w, speed_bounds, restarts = 2, accuracy=0.3) {
   init_par <- get_initial_parameters(speed_bounds, restarts)
@@ -48,13 +48,31 @@ locgeo_optim <- function(x, y, w, speed_bounds, restarts = 2, accuracy=0.3) {
 
 #' @export
 estimate_locgeo <- function(x, y, x_new, kernel, h, speed_bounds) {
-  out <- matrix(NA_real_, ncol=3, nrow=length(x_new))
+  estim <- matrix(NA_real_, ncol=3, nrow=length(x_new))
   for (i in seq_along(x_new)) {
     t <- x_new[i]
     w <- kernel((x-t)/h) / h
     w <- w / sum(w)
+    if (!all(is.finite(w))) stop("Not all weights are finite.")
     res <- locgeo_optim(x, y, w, speed_bounds)
-    out[i,] <- Exp(res$p, t*res$v)
+    estim[i,] <- Exp(res$p, t*res$v)
   }
-  convert_e2a(out)
+  estim_a <- convert_e2a(estim)
+  list(estim=estim, estim_a=estim_a)
+}
+
+
+#' @export
+estimate_locgeo_loocv <- function(x, y, x_new, kernel, speed_bounds, n_h=7) {
+  n <- length(x)
+  hs <- (2/n)^seq(1, 0, len=n_h)
+  dists <- sapply(hs, function(h) {
+    v <- sapply(seq_along(x), function(j) {
+      res <- estimate_locgeo(x[-j], y[-j,], x[j], kernel, h, speed_bounds)
+      dist(res$estim, y[j, ])
+    })
+    mean(v)
+  })
+  h <- hs[which.min(dists)]
+  c(estimate_locgeo(x, y, x_new, kernel, h, speed_bounds), list(h = h))
 }

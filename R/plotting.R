@@ -4,29 +4,37 @@ plot_mercator_base <- function() {
   sphere_grid()
 }
 
+wrap_line <- function(theta, phi, ...) {
+  if (phi[1] < pi/2 & phi[2] > 2*pi-pi/2) {
+    lines(c(phi[1],phi[2]-2*pi), theta, ...)
+    lines(c(phi[1]+2*pi,phi[2]), theta, ...)
+  } else if (phi[2] < pi/2 & phi[1] > 2*pi-pi/2) {
+    lines(c(phi[1],phi[2]+2*pi), theta, ...)
+    lines(c(phi[1]-2*pi,phi[2]), theta, ...)
+  } else {
+    lines(phi, theta, ...)
+  }
+}
+
 #' @export
 lines_mercator <- function(y_a=NULL, y=NULL, palette=rainbow, ...) {
   if (is.null(y_a)) y_a <- convert_e2a(y)
   colors <- palette(nrow(y_a)-1)
   for (i in 1:(nrow(y_a)-1)) {
-    phi <- y_a[i:(i+1),2]
-    theta <- y_a[i:(i+1),1]
-    if (phi[1] < 1 & phi[2] > 2*pi-1) {
-      lines(c(phi[1],phi[2]-2*pi), theta, col=colors[i], ...)
-      lines(c(phi[1]+2*pi,phi[2]), theta, col=colors[i], ...)
-    } else if (phi[2] < 1 & phi[1] > 2*pi-1) {
-      lines(c(phi[1],phi[2]+2*pi), theta, col=colors[i], ...)
-      lines(c(phi[1]-2*pi,phi[2]), theta, col=colors[i], ...)
-    } else {
-      lines(phi, theta, col=colors[i], ...)
-    }
+    wrap_line(y_a[i:(i+1),1], y_a[i:(i+1),2], col=colors[i], ...)
   }
 }
 
 #' @export
-points_mercator <- function(y_a=NULL, y=NULL, palette=rainbow, ...) {
+points_mercator <- function(y_a=NULL, y=NULL, m_a=NULL, palette=rainbow, ...) {
   if (is.null(y_a)) y_a <- convert_e2a(y)
-  points(y_a[,2:1], col=palette(nrow(y_a)), ...)
+  colors <- palette(nrow(y_a))
+  points(y_a[,2:1], bg=colors, col="black", ...)
+  if (!is.null(m_a)) {
+    for (i in 1:nrow(m_a)) {
+      wrap_line(c(y_a[i,1], m_a[i,1]), c(y_a[i,2], m_a[i,2]), col=colors[i], lwd=0.5)
+    }
+  }
 }
 
 striped_lines_a <- function(xy, ...) {
