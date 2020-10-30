@@ -14,7 +14,7 @@ eval_trig_base <- function(x, n_basis) {
 }
 
 #' @export
-estimate_trifre <- function(x, y, x_new, n_basis, restarts = 2) {
+estimate_trifre <- function(x, y, x_new, n_basis, periodize=FALSE, restarts = 2) {
   N <- restarts
   initial_parameters <-
     expand.grid(
@@ -24,6 +24,13 @@ estimate_trifre <- function(x, y, x_new, n_basis, restarts = 2) {
     as.matrix()
 
   estim_a <- matrix(nrow = length(x_new), ncol = 2)
+
+  if (periodize) {
+    n <- length(x)
+    x <- c(x, rev(2-x))/2
+    y <- rbind(y, y[n:1,])
+    x_new <- x_new/2
+  }
 
   y_a <- convert_e2a(y)
   X <- rbind(1, x)
@@ -52,4 +59,19 @@ estimate_trifre <- function(x, y, x_new, n_basis, restarts = 2) {
 
   estim <- convert_a2e(estim_a)
   list(estim=estim, estim_a=estim_a)
+}
+
+
+estimate_trifre_loocv <- function(x, y, x_new, n_n_basis=20, ...) {
+  n <- length(x)
+  ns_basis <- unique(round(1 + 2^(seq(0, log2(n/2), len=n_n_basis))))
+  dists <- sapply(ns_basis, function(n_basis) {
+    v <- sapply(seq_along(x), function(j) {
+      res <- estimate_trifre(x[-j], y[-j,], x[j], n_basis=n_basis, ...)
+      dist(res$estim, y[j, ])
+    })
+    mean(v)
+  })
+  n_basis <- ns_basis[which.min(dists)]
+  c(estimate_trifre(x, y, x_new, n_basis=n_basis, ...), list(n_basis = n_basis))
 }

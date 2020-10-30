@@ -23,6 +23,7 @@ optim_fn <- function(par, x, y) {
 }
 
 get_initial_parameters <- function(speed_bounds, restarts = 2) {
+  # TODO
   expand.grid(
     alpha = c(pi / 3, 2 * pi / 3),
     phi = c(2 * pi / 3, 4 * pi / 3),

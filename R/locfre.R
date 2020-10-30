@@ -48,3 +48,23 @@ estimate_locfre <- function(x, y, x_new, kernel, h, restarts = 2) {
   estim <- convert_a2e(estim_a)
   list(estim=estim, estim_a=estim_a)
 }
+
+#' Local linear Frechet regression on the sphere with cross validation.
+#'
+#' Uses leave one out cross validation to find a suitable bandwidth
+#'
+#' @param n_h number of bandwidths to check
+#' @export
+estimate_locfre_loocv <- function(x, y, x_new, n_h=7, ...) {
+  n <- length(x)
+  hs <- (3/n)^seq(1, 0, len=n_h)
+  dists <- sapply(hs, function(h) {
+    v <- sapply(seq_along(x), function(j) {
+      res <- estimate_locfre(x[-j], y[-j,], x[j], h=h, ...)
+      dist(res$estim, y[j, ])
+    })
+    mean(v)
+  })
+  h <- hs[which.min(dists)]
+  c(estimate_locfre(x, y, x_new, h=h, ...), list(h = h))
+}

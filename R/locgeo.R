@@ -62,6 +62,11 @@ estimate_locgeo <- function(x, y, x_new, kernel, h, speed_bounds) {
 }
 
 
+#' Local goedesic regression on the sphere with cross validation.
+#'
+#' Uses leave one out cross validation to find a suitable bandwidth
+#'
+#' @param n_h number of bandwidths to check
 #' @export
 estimate_locgeo_loocv <- function(x, y, x_new, kernel, speed_bounds, n_h=7) {
   n <- length(x)
