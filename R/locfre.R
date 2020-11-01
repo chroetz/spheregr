@@ -6,8 +6,7 @@ locfre_objective <- function(par, y_a, yo, w, X, X_eval_t) {
   X_eval_t %*% beta_hat_q
 }
 
-#' @export
-estimate_locfre <- function(x, y, x_new, kernel, h, restarts = 2) {
+.estimate_locfre <- function(x, y, x_new, kernel, h, restarts) {
   N <- restarts
   initial_parameters <-
     expand.grid(
@@ -53,18 +52,28 @@ estimate_locfre <- function(x, y, x_new, kernel, h, restarts = 2) {
 #'
 #' Uses leave one out cross validation to find a suitable bandwidth
 #'
-#' @param n_h number of bandwidths to check
+#' @param bw the bandwidth $h$ or number of bandwidths to check (for adapt="loocv")
+#' @adapt either "loocv" or NA
 #' @export
-estimate_locfre_loocv <- function(x, y, x_new, n_h=7, ...) {
-  n <- length(x)
-  hs <- (3/n)^seq(1, 0, len=n_h)
-  dists <- sapply(hs, function(h) {
-    v <- sapply(seq_along(x), function(j) {
-      res <- estimate_locfre(x[-j], y[-j,], x[j], h=h, ...)
-      dist(res$estim, y[j, ])
+estimate_locfre <- function(
+  x, y, x_new,
+  adapt=c("loocv", "none"), bw=7, kernel="epanechnikov", restarts = 2
+) {
+  kernel <- get_kernel_fun(kernel)
+  adapt <- match.arg(adapt)
+  if (adapt == "loocv") {
+    n <- length(x)
+    hs <- (3/n)^seq(1, 0, len=bw)
+    dists <- sapply(hs, function(h) {
+      v <- sapply(seq_along(x), function(j) {
+        res <- .estimate_locfre(x[-j], y[-j,], x[j], h=h, ...)
+        dist(res$estim, y[j, ])
+      })
+      mean(v)
     })
-    mean(v)
-  })
-  h <- hs[which.min(dists)]
-  c(estimate_locfre(x, y, x_new, h=h, ...), list(h = h))
+    h <- hs[which.min(dists)]
+  } else {
+    h <- bw
+  }
+  c(.estimate_locfre(x, y, x_new, h=h, ...), list(h = h))
 }

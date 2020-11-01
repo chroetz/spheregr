@@ -22,7 +22,7 @@ locgeo_optim_fn <- function(par, x, y, w) {
 
 #' @param accuracy double in [0,1]. trade optimization accuracy for
 #'   computational speed
-locgeo_optim <- function(x, y, w, max_speed, restarts = NULL, accuracy=0.3) {
+locgeo_optim <- function(x, y, w, max_speed, restarts, accuracy) {
   init_par <- get_initial_parameters(max_speed, restarts)
   res_lst <- list()
   for (i in seq_len(nrow(init_par))) {
@@ -46,8 +46,7 @@ locgeo_optim <- function(x, y, w, max_speed, restarts = NULL, accuracy=0.3) {
   list(p = p, v = v, par=res$par)
 }
 
-#' @export
-estimate_locgeo <- function(x, y, x_new, kernel, h, max_speed, ...) {
+.estimate_locgeo <- function(x, y, x_new, kernel, h, max_speed, restarts, accuracy) {
   estim <- matrix(NA_real_, ncol=3, nrow=length(x_new))
   for (i in seq_along(x_new)) {
     t <- x_new[i]
@@ -61,23 +60,48 @@ estimate_locgeo <- function(x, y, x_new, kernel, h, max_speed, ...) {
   list(estim=estim, estim_a=estim_a)
 }
 
+get_kernel_fun <- function(kernel = c("gaussian", "rectangular", "epanechnikov")) {
+  if (is.character(kernel)) {
+    kernel <- match.arg(kernel)
+    kernel_fun <- switch(kernel,
+         gaussian = dnorm,
+         rectangular = function(x) as.numeric(abs(x) <= 0.5),
+         epanechnikov = function(x) 3 / 4 * (1 - x ^ 2) * (abs(x) < 1)
+    )
+  } else {
+    kernel_fun <- kernel
+  }
+  kernel_fun
+}
 
 #' Local goedesic regression on the sphere with cross validation.
 #'
 #' Uses leave one out cross validation to find a suitable bandwidth
 #'
-#' @param n_h number of bandwidths to check
+#' @param bw number of bandwidths to check
 #' @export
-estimate_locgeo_loocv <- function(x, y, x_new, kernel, max_speed, n_h=7) {
-  n <- length(x)
-  hs <- (2/n)^seq(1, 0, len=n_h)
-  dists <- sapply(hs, function(h) {
-    v <- sapply(seq_along(x), function(j) {
-      res <- estimate_locgeo(x[-j], y[-j,], x[j], kernel, h, max_speed)
-      dist(res$estim, y[j, ])
+estimate_locgeo <- function(
+  x, y, x_new,
+  adapt=c("loocv", "none"),
+  bw=7, kernel = "epanechnikov",
+  max_speed=10, restarts = NULL, accuracy=0.3
+) {
+  kernel <- get_kernel_fun(kernel)
+  adapt <- match.arg(adapt)
+  if (adapt == "loocv") {
+    n <- length(x)
+    hs <- (2/n)^seq(1, 0, len=bw)
+    dists <- sapply(hs, function(h) {
+      v <- sapply(seq_along(x), function(j) {
+        res <- .estimate_locgeo(x[-j], y[-j,], x[j],
+                                kernel_fun, h, max_speed, restarts, accuracy)
+        dist(res$estim, y[j, ])
+      })
+      mean(v)
     })
-    mean(v)
-  })
-  h <- hs[which.min(dists)]
-  c(estimate_locgeo(x, y, x_new, kernel, h, max_speed), list(h = h))
+    h <- hs[which.min(dists)]
+  } else {
+    h <- bw
+  }
+  c(.estimate_locgeo(x, y, x_new, kernel, h, max_speed), list(h = h))
 }

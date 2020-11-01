@@ -22,7 +22,7 @@ trigeo_optim_fn <- function(par, phi, y, n_basis) {
 
 #' @param accuracy double in [0,1]. trade optimization accuracy for
 #'   computational speed
-trigeo_optim <- function(x, y, max_speed, n_basis, restarts = NULL, accuracy=0.3) {
+trigeo_optim <- function(x, y, max_speed, n_basis, restarts, accuracy) {
   init_par <- get_initial_parameters(max_speed, restarts=restarts, n_basis=n_basis)
   res_lst <- list()
   phi <- t(eval_trig_base(x, n_basis+1))[,-1,drop=FALSE]
@@ -47,8 +47,7 @@ trigeo_optim <- function(x, y, max_speed, n_basis, restarts = NULL, accuracy=0.3
   list(p = p, v = v, par=res$par)
 }
 
-#' @export
-estimate_trigeo <- function(x, y, x_new, n_basis, periodize=FALSE, ...) {
+.estimate_trigeo <- function(x, y, x_new, n_basis, periodize, max_speed, restarts, accuracy) {
 
   if (periodize) {
     n <- length(x)
@@ -66,16 +65,26 @@ estimate_trigeo <- function(x, y, x_new, n_basis, periodize=FALSE, ...) {
 
 
 #' @export
-estimate_trigeo_loocv <- function(x, y, x_new, n_basis_max=5, ...) {
-  n <- length(x)
-  ns_basis <- 1:n_basis_max
-  dists <- sapply(ns_basis, function(n_basis) {
-    v <- sapply(seq_along(x), function(j) {
-      res <- estimate_trigeo(x[-j], y[-j,], x[j], n_basis=n_basis, ...)
-      dist(res$estim, y[j, ])
+estimate_trigeo <- function(
+  x, y, x_new,
+  adapt=c("loocv", "none"), num_basis=5, periodize=FALSE,
+  max_speed = 10, restarts = NULL, accuracy=0.3
+) {
+  adapt <- match.arg(adapt)
+  if (adapt == "loocv") {
+    ns_basis <- 1:num_basis
+    dists <- sapply(ns_basis, function(n_basis) {
+      v <- sapply(seq_along(x), function(j) {
+        res <- .estimate_trigeo(x[-j], y[-j,], x[j],
+                                n_basis, periodize, max_speed,
+                                restarts, accuracy)
+        dist(res$estim, y[j, ])
+      })
+      mean(v)
     })
-    mean(v)
-  })
-  n_basis <- ns_basis[which.min(dists)]
-  c(estimate_trigeo(x, y, x_new, n_basis=n_basis, ...), list(n_basis = n_basis))
+    n_basis <- ns_basis[which.min(dists)]
+  } else {
+    n_basis <- num_basis
+  }
+  c(.estimate_trigeo(x, y, x_new, n_basis=n_basis, ...), list(n_basis = n_basis))
 }

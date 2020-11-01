@@ -13,7 +13,7 @@ m_new_a <- spiral(n_new, pi/8, pi/8*7, circles=1.5)
 x_new <- seq(0, 1, len=n_new)
 x <- seq(0, 1, len=n)
 m <- convert_a2e(m_a)
-#sd <- sqrt((pi^2-4)/2)*contr
+sd <- sqrt((pi^2-4)/2)*contr
 y <- add_noise_contract(m, contr)
 y_a <- convert_e2a(y)
 
@@ -26,32 +26,25 @@ geo_ise <- mean(dist_a(geo_a, m_new_a)^2)
 
 cat("trigeo", system.time({
   trigeo <- estimate_trigeo(
-    x, y, x_new, n_basis=2, max_speed=4, accuracy=0.25, restarts=NULL, periodize=TRUE)
+    x, y, x_new, adapt = "none", periodize=TRUE)
 })[3], "n_basis:", trigeo$n_basis,"\n")
 trigeo_a <- trigeo$estim_a
 trigeo_ise <- mean(dist_a(trigeo_a, m_new_a)^2)
 
-# cat("trigeo", system.time({
-#   trigeo <- estimate_trigeo_loocv(
-#     x, y, x_new, n_basis_max=3, max_speed=10, accuracy=0.2, restarts=NULL, periodize=TRUE)
-# })[3], "n_basis:", trigeo$n_basis,"\n")
-# trigeo_a <- trigeo$estim_a
-# trigeo_ise <- mean(dist_a(trigeo_a, m_new_a)^2)
-
 cat("trifre", system.time({
-  trifre <- estimate_trifre_loocv(x, y, x_new, periodize=TRUE)
+  trifre <- estimate_trifre(x, y, x_new, periodize=TRUE)
 })[3], "n_basis:", trifre$n_basis,"\n")
 trifre_a <- trifre$estim_a
 trifre_ise <- mean(dist_a(trifre_a, m_new_a)^2)
 
 cat("locgeo", system.time({
-  locgeo <- estimate_locgeo_loocv(x, y, x_new, kernel=ker_epan, max_speed=5)
+  locgeo <- estimate_locgeo(x, y, x_new)
 })[3], "h:", locgeo$h, "\n")
 locgeo_a <- locgeo$estim_a
 locgeo_ise <- mean(dist_a(locgeo_a, m_new_a)^2)
 
 cat("locfre", system.time({
-  locfre <- estimate_locfre_loocv(x, y, x_new, kernel=ker_epan)
+  locfre <- estimate_locfre(x, y, x_new)
 })[3], "h:", locfre$h, "\n")
 locfre_a <- locfre$estim_a
 locfre_ise <- mean(dist_a(locfre_a, m_new_a)^2)

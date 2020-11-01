@@ -13,8 +13,8 @@ eval_trig_base <- function(x, n_basis) {
   phi[1:n_basis, , drop=FALSE]
 }
 
-#' @export
-estimate_trifre <- function(x, y, x_new, n_basis, periodize=FALSE, restarts = 2) {
+
+.estimate_trifre <- function(x, y, x_new, num_basis, periodize, restarts) {
   N <- restarts
   initial_parameters <-
     expand.grid(
@@ -62,16 +62,24 @@ estimate_trifre <- function(x, y, x_new, n_basis, periodize=FALSE, restarts = 2)
 }
 
 
-estimate_trifre_loocv <- function(x, y, x_new, n_n_basis=20, ...) {
-  n <- length(x)
-  ns_basis <- unique(round(1 + 2^(seq(0, log2(n/2), len=n_n_basis))))
-  dists <- sapply(ns_basis, function(n_basis) {
-    v <- sapply(seq_along(x), function(j) {
-      res <- estimate_trifre(x[-j], y[-j,], x[j], n_basis=n_basis, ...)
-      dist(res$estim, y[j, ])
+estimate_trifre <- function(x, y, x_new, adapt=c("loocv", "none"), num_basis=20,
+                            periodize=FALSE, restarts = 2) {
+  adapt <- match.arg(adapt)
+  if (adapt == "loocv") {
+    n <- length(x)
+    nums_basis <- unique(round(1 + 2^(seq(0, log2(n/2), len=num_basis))))
+    dists <- sapply(nums_basis, function(num_b) {
+      v <- sapply(seq_along(x), function(j) {
+        res <- .estimate_trifre(
+          x[-j], y[-j,], x[j],
+          num_basis=num_b, periodize=periodize, restarts=restarts)
+        dist(res$estim, y[j, ])
+      })
+      mean(v)
     })
-    mean(v)
-  })
-  n_basis <- ns_basis[which.min(dists)]
-  c(estimate_trifre(x, y, x_new, n_basis=n_basis, ...), list(n_basis = n_basis))
+    num_b <- nums_basis[which.min(dists)]
+  } else {
+    num_b <- num_basis
+  }
+  c(.estimate_trifre(x, y, x_new, num_basis=num_b, ...), list(num_basis = num_b))
 }
