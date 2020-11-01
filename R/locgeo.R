@@ -22,8 +22,8 @@ locgeo_optim_fn <- function(par, x, y, w) {
 
 #' @param accuracy double in [0,1]. trade optimization accuracy for
 #'   computational speed
-locgeo_optim <- function(x, y, w, speed_bounds, restarts = 2, accuracy=0.3) {
-  init_par <- get_initial_parameters(speed_bounds, restarts)
+locgeo_optim <- function(x, y, w, max_speed, restarts = NULL, accuracy=0.3) {
+  init_par <- get_initial_parameters(max_speed, restarts)
   res_lst <- list()
   for (i in seq_len(nrow(init_par))) {
     res_lst[[i]] <- stats::optim(
@@ -31,8 +31,8 @@ locgeo_optim <- function(x, y, w, speed_bounds, restarts = 2, accuracy=0.3) {
       gr = NULL,
       x = x, y = y, w = w,
       method = "L-BFGS-B",
-      lower = c(0, 0, -speed_bounds[2], -speed_bounds[2]),
-      upper = c(pi, 2 * pi, speed_bounds[2], speed_bounds[2]),
+      lower = c(0, 0, -max_speed, -max_speed),
+      upper = c(pi, 2 * pi, max_speed, max_speed),
       control = list(factr = 10^(17 * (1 - accuracy)))
     )
   }
@@ -47,14 +47,14 @@ locgeo_optim <- function(x, y, w, speed_bounds, restarts = 2, accuracy=0.3) {
 }
 
 #' @export
-estimate_locgeo <- function(x, y, x_new, kernel, h, speed_bounds) {
+estimate_locgeo <- function(x, y, x_new, kernel, h, max_speed, ...) {
   estim <- matrix(NA_real_, ncol=3, nrow=length(x_new))
   for (i in seq_along(x_new)) {
     t <- x_new[i]
     w <- kernel((x-t)/h) / h
     w <- w / sum(w)
     if (!all(is.finite(w))) stop("Not all weights are finite.")
-    res <- locgeo_optim(x, y, w, speed_bounds)
+    res <- locgeo_optim(x, y, w, max_speed, ...)
     estim[i,] <- Exp(res$p, t*res$v)
   }
   estim_a <- convert_e2a(estim)
@@ -68,16 +68,16 @@ estimate_locgeo <- function(x, y, x_new, kernel, h, speed_bounds) {
 #'
 #' @param n_h number of bandwidths to check
 #' @export
-estimate_locgeo_loocv <- function(x, y, x_new, kernel, speed_bounds, n_h=7) {
+estimate_locgeo_loocv <- function(x, y, x_new, kernel, max_speed, n_h=7) {
   n <- length(x)
   hs <- (2/n)^seq(1, 0, len=n_h)
   dists <- sapply(hs, function(h) {
     v <- sapply(seq_along(x), function(j) {
-      res <- estimate_locgeo(x[-j], y[-j,], x[j], kernel, h, speed_bounds)
+      res <- estimate_locgeo(x[-j], y[-j,], x[j], kernel, h, max_speed)
       dist(res$estim, y[j, ])
     })
     mean(v)
   })
   h <- hs[which.min(dists)]
-  c(estimate_locgeo(x, y, x_new, kernel, h, speed_bounds), list(h = h))
+  c(estimate_locgeo(x, y, x_new, kernel, h, max_speed), list(h = h))
 }

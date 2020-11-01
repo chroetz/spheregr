@@ -10,7 +10,7 @@ eval_trig_base <- function(x, n_basis) {
   phi[1, ] <- 1
   phi[2*k, ] <- sqrt(2)*cospi(2 * k %*% t(x))
   phi[2*k+1, ] <- sqrt(2)*sinpi(2 * k %*% t(x))
-  phi[1:n_basis, ]
+  phi[1:n_basis, , drop=FALSE]
 }
 
 #' @export
