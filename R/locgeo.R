@@ -20,8 +20,6 @@ locgeo_optim_fn <- function(par, x, y, w) {
   locgeo_energy(p, v, x, y, w)
 }
 
-#' @param accuracy double in [0,1]. trade optimization accuracy for
-#'   computational speed
 locgeo_optim <- function(x, y, w, max_speed, restarts, accuracy) {
   init_par <- get_initial_parameters(max_speed, restarts)
   res_lst <- list()
@@ -46,39 +44,28 @@ locgeo_optim <- function(x, y, w, max_speed, restarts, accuracy) {
   list(p = p, v = v, par=res$par)
 }
 
-.estimate_locgeo <- function(x, y, x_new, kernel, h, max_speed, restarts, accuracy) {
+.estimate_locgeo <- function(x, y, x_new, kernel_fun, h, max_speed, restarts, accuracy) {
   estim <- matrix(NA_real_, ncol=3, nrow=length(x_new))
   for (i in seq_along(x_new)) {
     t <- x_new[i]
-    w <- kernel((x-t)/h) / h
+    w <- kernel_fun((x-t)/h) / h
     w <- w / sum(w)
     if (!all(is.finite(w))) stop("Not all weights are finite.")
-    res <- locgeo_optim(x, y, w, max_speed, ...)
+    res <- locgeo_optim(x, y, w, max_speed, restarts, accuracy)
     estim[i,] <- Exp(res$p, t*res$v)
   }
   estim_a <- convert_e2a(estim)
   list(estim=estim, estim_a=estim_a)
 }
 
-get_kernel_fun <- function(kernel = c("gaussian", "rectangular", "epanechnikov")) {
-  if (is.character(kernel)) {
-    kernel <- match.arg(kernel)
-    kernel_fun <- switch(kernel,
-         gaussian = dnorm,
-         rectangular = function(x) as.numeric(abs(x) <= 0.5),
-         epanechnikov = function(x) 3 / 4 * (1 - x ^ 2) * (abs(x) < 1)
-    )
-  } else {
-    kernel_fun <- kernel
-  }
-  kernel_fun
-}
 
 #' Local goedesic regression on the sphere with cross validation.
 #'
 #' Uses leave one out cross validation to find a suitable bandwidth
 #'
 #' @param bw number of bandwidths to check
+#' @param accuracy double in [0,1]. trade optimization accuracy for
+#'   computational speed
 #' @export
 estimate_locgeo <- function(
   x, y, x_new,
@@ -86,7 +73,7 @@ estimate_locgeo <- function(
   bw=7, kernel = "epanechnikov",
   max_speed=10, restarts = NULL, accuracy=0.3
 ) {
-  kernel <- get_kernel_fun(kernel)
+  kernel_fun <- get_kernel_fun(kernel)
   adapt <- match.arg(adapt)
   if (adapt == "loocv") {
     n <- length(x)
@@ -103,5 +90,5 @@ estimate_locgeo <- function(
   } else {
     h <- bw
   }
-  c(.estimate_locgeo(x, y, x_new, kernel, h, max_speed), list(h = h))
+  c(.estimate_locgeo(x, y, x_new, kernel_fun, h, max_speed, restarts, accuracy), list(h = h))
 }

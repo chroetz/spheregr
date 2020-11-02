@@ -5,9 +5,9 @@
 energy <- function(p, v, x, y) {
   z <- x %*% v # nx3
   n <- nrow(z)
-  norm_z <- sqrt(.Internal(rowSums(z^2, n, 3L, FALSE)))
-  co <- .Internal(tcrossprod(y, p)) * cos(norm_z) # nx1
-  si <- .Internal(rowSums(y * z, n, 3L, FALSE)) / norm_z * sin(norm_z) # nx1s
+  norm_z <- sqrt(.rowSums(z^2, n, 3L, FALSE))
+  co <- tcrossprod(y, p) * cos(norm_z) # nx1
+  si <- .rowSums(y * z, n, 3L, FALSE) / norm_z * sin(norm_z) # nx1s
   s <- clamp1(co + si)
   .Internal(mean(acos(s)^2)) / 2
   # should be same as
@@ -22,12 +22,12 @@ optim_fn <- function(par, x, y) {
   energy(p, v, x, y)
 }
 
-get_initial_parameters <- function(max_speed, restarts = NULL, n_basis = 1) {
+get_initial_parameters <- function(max_speed, restarts = NULL, num_basis = 1) {
   init_par <- as.matrix(expand.grid(c(list(
       alpha = c(pi / 3, 2 * pi / 3),
       phi = c(2 * pi / 3, 4 * pi / 3)
     ),
-    rep(list(max_speed / 3 / sqrt(2) * c(1, -1)),n_basis*2)
+    rep(list(max_speed / 3 / sqrt(2) * c(1, -1)),num_basis*2)
     )
   ))
   if (!is.null(restarts) && nrow(init_par) > restarts) {
@@ -38,7 +38,7 @@ get_initial_parameters <- function(max_speed, restarts = NULL, n_basis = 1) {
     init_par <- rbind(init_par, cbind(
       alpha = runif(k)*pi,
       phi = runif(k)*pi*2,
-      matrix(runif(k*2*n_basis, min=-max_speed, max=max_speed), ncol=2*n_basis)
+      matrix(runif(k*2*num_basis, min=-max_speed, max=max_speed), ncol=2*num_basis)
     ))
   }
   init_par

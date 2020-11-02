@@ -4,15 +4,6 @@ trifre_objective <- function(par, y_a, yo, B) {
   m_hat <- B %*% (yq^2 - yo^2)
 }
 
-eval_trig_base <- function(x, n_basis) {
-  k <- seq_len(n_basis/2)
-  phi <- matrix(NA, nrow=2*length(k)+1, ncol=length(x))
-  phi[1, ] <- 1
-  phi[2*k, ] <- sqrt(2)*cospi(2 * k %*% t(x))
-  phi[2*k+1, ] <- sqrt(2)*sinpi(2 * k %*% t(x))
-  phi[1:n_basis, , drop=FALSE]
-}
-
 
 .estimate_trifre <- function(x, y, x_new, num_basis, periodize, restarts) {
   N <- restarts
@@ -24,9 +15,9 @@ eval_trig_base <- function(x, n_basis) {
     as.matrix()
 
   estim_a <- matrix(nrow = length(x_new), ncol = 2)
+  n <- length(x)
 
   if (periodize) {
-    n <- length(x)
     x <- c(x, rev(2-x))/2
     y <- rbind(y, y[n:1,])
     x_new <- x_new/2
@@ -38,8 +29,8 @@ eval_trig_base <- function(x, n_basis) {
 
   for (j in seq_along(x_new)) {
     res_lst <- list()
-    phi <- eval_trig_base(x, n_basis)
-    phi_new <- eval_trig_base(x_new[j], n_basis)
+    phi <- eval_trig_base(x, num_basis)
+    phi_new <- eval_trig_base(x_new[j], num_basis)
     B <- 1/n * crossprod(phi_new, phi)
     for (i in seq_len(nrow(initial_parameters))) {
       res_lst[[i]] <- stats::optim(
@@ -61,7 +52,7 @@ eval_trig_base <- function(x, n_basis) {
   list(estim=estim, estim_a=estim_a)
 }
 
-
+#' @export
 estimate_trifre <- function(x, y, x_new, adapt=c("loocv", "none"), num_basis=20,
                             periodize=FALSE, restarts = 2) {
   adapt <- match.arg(adapt)
@@ -72,7 +63,7 @@ estimate_trifre <- function(x, y, x_new, adapt=c("loocv", "none"), num_basis=20,
       v <- sapply(seq_along(x), function(j) {
         res <- .estimate_trifre(
           x[-j], y[-j,], x[j],
-          num_basis=num_b, periodize=periodize, restarts=restarts)
+          num_b, periodize, restarts)
         dist(res$estim, y[j, ])
       })
       mean(v)
@@ -81,5 +72,5 @@ estimate_trifre <- function(x, y, x_new, adapt=c("loocv", "none"), num_basis=20,
   } else {
     num_b <- num_basis
   }
-  c(.estimate_trifre(x, y, x_new, num_basis=num_b, ...), list(num_basis = num_b))
+  c(.estimate_trifre(x, y, x_new, num_b, periodize, restarts), list(num_basis = num_b))
 }

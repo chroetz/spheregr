@@ -53,20 +53,20 @@ locfre_objective <- function(par, y_a, yo, w, X, X_eval_t) {
 #' Uses leave one out cross validation to find a suitable bandwidth
 #'
 #' @param bw the bandwidth $h$ or number of bandwidths to check (for adapt="loocv")
-#' @adapt either "loocv" or NA
+#' @adapt either "loocv" or "none"
 #' @export
 estimate_locfre <- function(
   x, y, x_new,
   adapt=c("loocv", "none"), bw=7, kernel="epanechnikov", restarts = 2
 ) {
-  kernel <- get_kernel_fun(kernel)
+  kernel_fun <- get_kernel_fun(kernel)
   adapt <- match.arg(adapt)
   if (adapt == "loocv") {
     n <- length(x)
     hs <- (3/n)^seq(1, 0, len=bw)
     dists <- sapply(hs, function(h) {
       v <- sapply(seq_along(x), function(j) {
-        res <- .estimate_locfre(x[-j], y[-j,], x[j], h=h, ...)
+        res <- .estimate_locfre(x[-j], y[-j,], x[j], kernel_fun, h, restarts)
         dist(res$estim, y[j, ])
       })
       mean(v)
@@ -75,5 +75,5 @@ estimate_locfre <- function(
   } else {
     h <- bw
   }
-  c(.estimate_locfre(x, y, x_new, h=h, ...), list(h = h))
+  c(.estimate_locfre(x, y, x_new, kernel_fun, h, restarts), list(h = h))
 }

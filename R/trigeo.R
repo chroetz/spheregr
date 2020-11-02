@@ -12,28 +12,28 @@ trigeo_energy <- function(p, v, phi, y) {
   sum(acos(s)^2) / 2
 }
 
-trigeo_optim_fn <- function(par, phi, y, n_basis) {
+trigeo_optim_fn <- function(par, phi, y, num_basis) {
   p <- convert_a2e_1(par[1:2])
-  v <- matrix(NA, nrow=n_basis, ncol=3)
-  for (j in 1:n_basis) v[j, ] <- get_v_rcpp(p, par[c(2*j+1, 2*j+2)])
+  v <- matrix(NA, nrow=num_basis, ncol=3)
+  for (j in 1:num_basis) v[j, ] <- get_v_rcpp(p, par[c(2*j+1, 2*j+2)])
   dim(p) <- c(1L, 3L)
   trigeo_energy(p, v, phi, y)
 }
 
 #' @param accuracy double in [0,1]. trade optimization accuracy for
 #'   computational speed
-trigeo_optim <- function(x, y, max_speed, n_basis, restarts, accuracy) {
-  init_par <- get_initial_parameters(max_speed, restarts=restarts, n_basis=n_basis)
+trigeo_optim <- function(x, y, max_speed, num_basis, restarts, accuracy) {
+  init_par <- get_initial_parameters(max_speed, restarts=restarts, num_basis=num_basis)
   res_lst <- list()
-  phi <- t(eval_trig_base(x, n_basis+1))[,-1,drop=FALSE]
+  phi <- t(eval_trig_base(x, num_basis+1))[,-1,drop=FALSE]
   for (i in seq_len(nrow(init_par))) {
     res_lst[[i]] <- stats::optim(
       init_par[i, ], trigeo_optim_fn,
       gr = NULL,
-      phi = phi, y = y, n_basis = n_basis,
+      phi = phi, y = y, num_basis = num_basis,
       method = "L-BFGS-B",
-      lower = c(0, 0, rep(-max_speed, times=2*n_basis)),
-      upper = c(pi, 2 * pi, rep(max_speed, times=2*n_basis)),
+      lower = c(0, 0, rep(-max_speed, times=2*num_basis)),
+      upper = c(pi, 2 * pi, rep(max_speed, times=2*num_basis)),
       control = list(factr = 10^(17 * (1 - accuracy)))
     )
   }
@@ -41,13 +41,13 @@ trigeo_optim <- function(x, y, max_speed, n_basis, restarts, accuracy) {
   idx <- which.min(values)
   res <- res_lst[[idx]]
   p <- convert_a2e_1(res$par[1:2])
-  v <- matrix(NA, nrow=n_basis, ncol=3)
-  for (j in 1:n_basis) v[j, ] <- get_v_rcpp(p, res$par[c(2*j+1, 2*j+2)])
+  v <- matrix(NA, nrow=num_basis, ncol=3)
+  for (j in 1:num_basis) v[j, ] <- get_v_rcpp(p, res$par[c(2*j+1, 2*j+2)])
   dim(p) <- c(1L, 3L)
   list(p = p, v = v, par=res$par)
 }
 
-.estimate_trigeo <- function(x, y, x_new, n_basis, periodize, max_speed, restarts, accuracy) {
+.estimate_trigeo <- function(x, y, x_new, num_basis, periodize, max_speed, restarts, accuracy) {
 
   if (periodize) {
     n <- length(x)
@@ -56,8 +56,8 @@ trigeo_optim <- function(x, y, max_speed, n_basis, restarts, accuracy) {
     x_new <- x_new/2
   }
 
-  res <- trigeo_optim(x, y, n_basis=n_basis, ...)
-  phi <- t(eval_trig_base(x_new, n_basis+1))[,-1,drop=FALSE]
+  res <- trigeo_optim(x, y, max_speed, num_basis, restarts, accuracy)
+  phi <- t(eval_trig_base(x_new, num_basis+1))[,-1,drop=FALSE]
   estim <- Exp(res$p, phi %*% res$v)
   estim_a <- convert_e2a(estim)
   c(list(estim=estim, estim_a=estim_a), res)
@@ -72,19 +72,20 @@ estimate_trigeo <- function(
 ) {
   adapt <- match.arg(adapt)
   if (adapt == "loocv") {
-    ns_basis <- 1:num_basis
-    dists <- sapply(ns_basis, function(n_basis) {
+    nums_basis <- 1:num_basis
+    dists <- sapply(nums_basis, function(num_b) {
       v <- sapply(seq_along(x), function(j) {
         res <- .estimate_trigeo(x[-j], y[-j,], x[j],
-                                n_basis, periodize, max_speed,
+                                num_b, periodize, max_speed,
                                 restarts, accuracy)
         dist(res$estim, y[j, ])
       })
       mean(v)
     })
-    n_basis <- ns_basis[which.min(dists)]
+    num_b <- nums_basis[which.min(dists)]
   } else {
-    n_basis <- num_basis
+    num_b <- num_basis
   }
-  c(.estimate_trigeo(x, y, x_new, n_basis=n_basis, ...), list(n_basis = n_basis))
+  c(.estimate_trigeo(x, y, x_new, num_b, periodize, max_speed, restarts, accuracy),
+    list(num_basis = num_b))
 }

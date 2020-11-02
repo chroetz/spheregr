@@ -1,3 +1,6 @@
+palette_rainbow <- function(n) rainbow(n, s=1.0, v=1.0, alpha=NULL)
+palette_const <- function(v) function(n) rep(v, times=n)
+
 #' @export
 plot_mercator_base <- function() {
   plot(NA, ylim=c(0, pi), xlim=c(0, 2*pi), ylab="theta", xlab="phi")
@@ -35,6 +38,45 @@ points_mercator <- function(y_a=NULL, y=NULL, m_a=NULL, palette=rainbow, ...) {
       wrap_line(c(y_a[i,1], m_a[i,1]), c(y_a[i,2], m_a[i,2]), col=colors[i], lwd=0.5)
     }
   }
+}
+
+plot_run <- function(res) {
+  layout(
+    matrix(1:2, ncol=1),
+    heights = c(9,1),
+    widths = c(1)
+  )
+
+  with(res, {
+    with(data, {
+      plot_mercator_base()
+      lines_mercator(m_a, palette=palette_const(1), lwd=8)
+      lines_mercator(m_a, palette=palette_rainbow, lwd=2)
+      points_mercator(y_a, m_a=m_a, palette=palette_rainbow, pch=21, cex=1.5)
+    })
+    for (meth in names(predict)) {
+      with(predict[[meth]], {
+        lines_mercator(estim_a, palette=palette_const(nonparam_colors[meth]), lwd=8)
+        lines_mercator(estim_a, palette=palette_const(1), lwd=4)
+        lines_mercator(estim_a, palette=palette_rainbow, lwd=2)
+      })
+    }
+  })
+
+  methods <- names(res$predict)
+  legend(
+    "topright",
+    col=c("black", nonparam_colors[methods]),
+    legend=c("true", methods), lwd=2)
+
+  par(mar=c(2,0,0,0))
+  plot.new()
+  plot.window(xlim = c(0, 1), ylim = c(0, 1))
+  x <- seq(0, 1, len=300)
+  colors=palette_rainbow(300)
+  for (i in 1:299) rect(x[i], 0, x[i+1], 1, col=colors[i], border=NA)
+  ticks <- seq(0,1,0.2)
+  axis(1, at = ticks, labels = ticks, pos = 0)
 }
 
 striped_lines_a <- function(xy, ...) {
