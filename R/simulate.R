@@ -1,24 +1,12 @@
-#' @export
 methods <- c("linfre", "lincos", "lingeo", "locfre", "trifre", "locgeo", "trigeo")
-
-
-#' @export
-nonparam_colors <- c(
-  linfre = "#FFFF00",
-  lincos = "#00FFFF",
-  lingeo = "#FF7FFF",
-  locfre = "#FF0000",
-  trifre = "#00FF00",
-  locgeo = "#0000FF",
-  trigeo = "#FF00FF"
-)
 
 
 spiral_fun <- function(theta_min, theta_max = theta_min, phi_start = 0.5, circles = 1) {
   function(x) {
     phi <- (phi_start + x * 2 * pi * circles) %% (2 * pi)
     theta <- theta_min + x * (theta_max - theta_max)
-    cbind(theta, phi)
+    m_a <- cbind(theta, phi)
+    list(m=convert_a2e(m_a), m_a=m_a)
   }
 }
 
@@ -37,7 +25,10 @@ geodesic_fun <- function(speed_bounds=NULL, p=NULL, v=NULL) {
   } else {
     if (!is.null(speed_target)) v <- v * speed_target / sqrt(sum(v^2))
   }
-  function(x) Exp(p, x %*% v)
+  function(x) {
+    m <- Exp(p, x %*% v)
+    list(m=m, m_a=convert_e2a(m))
+  }
 }
 
 
@@ -54,22 +45,21 @@ sample_regression_data <- function(n,
   m_fun <- switch(curve,
                   geodesic = geodesic_fun(...),
                   spiral = spiral_fun(...))
-  m_a <- m_fun(x, ...)
-  m_new_a <- m_fun(x_new, ...)
-  m <- convert_a2e(m_a)
+  m <- m_fun(x)
+  m_new <- m_fun(x_new)
   noise <- match.arg(noise)
   y <- switch(noise,
-              contracted = add_noise_contract(m, sd = sd),
-              normal = add_noise_normal(m, sd = sd))
+              contracted = add_noise_contract(m$m, sd = sd),
+              normal = add_noise_normal(m$m, sd = sd))
   list(
     x = x,
     x_new = x_new,
     y = y,
     y_a = convert_e2a(y),
-    m = m,
-    m_a = m_a,
-    m_new = convert_a2e(m_new_a),
-    m_new_a = m_new_a
+    m = m$m,
+    m_a = m$m_a,
+    m_new = m_new$m,
+    m_new_a = m_new$m_a
   )
 }
 
@@ -107,16 +97,10 @@ simu_run_one <- function(osamp, ometh, verbosity=1) {
 }
 
 #' @export
-create_nonparam_opt <- function(
+create_opt <- function(
   reps, n, sd, n_new,
   curve = c("spiral_closed", "spiral_open", "geodesic"), speed = pi,
-  linfre = TRUE,
-  lincos = TRUE,
-  lingeo = TRUE,
-  locfre = TRUE,
-  locgeo = TRUE,
-  trifre = TRUE,
-  trigeo = 3) {
+  methods=NULL, method_opts=NULL) {
 
   o <- list(samp = list(),
             simu = list(),
@@ -130,6 +114,7 @@ create_nonparam_opt <- function(
   o$samp$sd <- sd
 
   curve <- match.arg(curve)
+  o$simu$curve <- curve
   switch(curve,
          spiral_closed = {
            o$samp$curve <- "spiral"
@@ -150,48 +135,58 @@ create_nonparam_opt <- function(
          geodesic = {
            o$samp$curve <- "geodesic"
            o$samp$speed_bounds <- speed
+           if (abs((pi + speed) %% (2*pi) - pi) < 0.01) periodic <- TRUE
+           else periodic <- FALSE
          }
   )
 
-  if (locfre) {
-    o$meth$locfre$adapt <- "loocv"
-    o$meth$locfre$kernel <- "epanechnikov"
-    o$meth$locfre$bw <- 7
-    o$meth$locfre$restarts <- 3
-  }
-  if (trifre) {
-    o$meth$trifre$adapt <- "loocv"
-    o$meth$trifre$num_basis <- 20
-    o$meth$trifre$periodize <- !periodic
-    o$meth$trifre$restarts <-  3
-  }
-  if (locgeo) {
-    o$meth$locgeo$adapt <- "loocv"
-    o$meth$locgeo$bw <- 7
-    o$meth$locgeo$kernel <- "epanechnikov"
-    o$meth$locgeo$max_speed <- 5
-    o$meth$locgeo$restarts <- NULL
-    o$meth$locgeo$accuracy <- 0.25
-  }
-  if (trigeo) {
-    o$meth$trigeo$adapt <- "none"
-    o$meth$trigeo$num_basis <- trigeo
-    o$meth$trigeo$periodize <- !periodic
-    o$meth$trigeo$max_speed <- 5
-    o$meth$trigeo$restarts <- NULL
-    o$meth$trigeo$accuracy <- 0.25
-  }
-  if (linfre) {
-    o$meth$linfre$restarts <- 2
-  }
-  if (lincos) {
-    o$meth$lincos$max_speed <- 10
-    o$meth$lincos$restarts <- 2
-  }
-  if (lingeo) {
-    o$meth$lingeo$max_speed <- 10
-    o$meth$lingeo$restarts <- 2
-  }
+  methods <- unique(c(methods, names(method_opts)))
+  ometh <- lapply(methods, function(meth) {
+    default_opts <- switch(
+      meth,
+      locfre = list(
+        adapt = "loocv",
+        kernel = "epanechnikov",
+        bw = 7,
+        restarts = 3
+      ),
+      trifre = list(
+        adapt = "loocv",
+        num_basis = 20,
+        periodize = !periodic,
+        restarts =  3
+      ),
+      locgeo = list(
+        adapt = "loocv",
+        bw = 7,
+        kernel = "epanechnikov",
+        max_speed = 5,
+        restarts = NULL,
+        accuracy = 0.25
+      ),
+      trigeo = list(
+        adapt = "none",
+        num_basis = 3,
+        periodize = !periodic,
+        max_speed = 5,
+        restarts = NULL,
+        accuracy = 0.25
+      ),
+      linfre = list(restarts = 2),
+      lincos = list(max_speed = 10,
+                    restarts = 2),
+      lingeo = list(max_speed = 10,
+                    restarts = 2)
+    )
+
+    opts <- default_opts
+    opts[names(method_opts[[meth]])] <- method_opts[[meth]]
+    opts
+  })
+
+  names(ometh) <- methods
+  o$meth <- ometh
+
   o
 }
 

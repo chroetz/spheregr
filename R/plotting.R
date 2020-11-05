@@ -1,9 +1,23 @@
 palette_rainbow <- function(n) rainbow(n, s=1.0, v=1.0, alpha=NULL)
 palette_const <- function(v) function(n) rep(v, times=n)
 
+method_colors <- c(
+  linfre = "#FF7F00",
+  lincos = "#00FFFF",
+  lingeo = "#7F3F7F",
+  locfre = "#FF0000",
+  trifre = "#00FF00",
+  locgeo = "#0000FF",
+  trigeo = "#FF00FF"
+)
+
 #' @export
 plot_mercator_base <- function() {
-  plot(NA, ylim=c(0, pi), xlim=c(0, 2*pi), ylab="theta", xlab="phi")
+  plot(NA, ylim=c(0, pi), xlim=c(0, 2*pi), ylab="theta", xlab="phi", xaxt="n", yaxt="n")
+  xtick <- seq(0, 2*pi, len=5)
+  ytick <- seq(0, pi, len=3)
+  axis(side=1, at=xtick, labels = c("0", "pi/2", "pi", "3pi/2", "2pi"))
+  axis(side=2, at=ytick, labels = c("0", "pi/2", "pi"))
   sphere_grid()
 }
 
@@ -41,36 +55,46 @@ points_mercator <- function(y_a=NULL, y=NULL, m_a=NULL, palette=rainbow, ...) {
 }
 
 #' @export
-plot_run <- function(res) {
-  layout(
-    matrix(1:2, ncol=1),
-    heights = c(9,1),
-    widths = c(1)
-  )
-
+plot_run <- function(res, rainbow=TRUE, legend=FALSE) {
   with(res, {
     with(data, {
       plot_mercator_base()
-      lines_mercator(m_a, palette=palette_const(1), lwd=8)
-      lines_mercator(m_a, palette=palette_rainbow, lwd=2)
-      points_mercator(y_a, m_a=m_a, palette=palette_rainbow, pch=21, cex=1.5)
+      if (rainbow) {
+        lines_mercator(m_a, palette=palette_const(1), lwd=8)
+        lines_mercator(m_a, palette=palette_rainbow, lwd=2)
+        points_mercator(y_a, m_a=m_a, palette=palette_rainbow, pch=21, cex=1.5)
+      } else {
+        lines_mercator(m_a, palette=palette_const(1), lwd=2)
+        points_mercator(y_a, m_a=m_a, palette=palette_const(1), pch=21, cex=1.5)
+      }
     })
     for (meth in names(predict)) {
       with(predict[[meth]], {
-        lines_mercator(estim_a, palette=palette_const(nonparam_colors[meth]), lwd=8)
-        lines_mercator(estim_a, palette=palette_const(1), lwd=4)
-        lines_mercator(estim_a, palette=palette_rainbow, lwd=2)
+        if (rainbow) {
+          lines_mercator(estim_a, palette=palette_const(method_colors[meth]), lwd=8)
+          lines_mercator(estim_a, palette=palette_const(1), lwd=4)
+          lines_mercator(estim_a, palette=palette_rainbow, lwd=2)
+        } else {
+          lines_mercator(estim_a, palette=palette_const(method_colors[meth]), lwd=2)
+        }
       })
     }
   })
 
-  methods <- names(res$predict)
-  legend(
-    "topright",
-    col=c("black", nonparam_colors[methods]),
-    legend=c("true", methods), lwd=2)
+  if (!is.null(legend) && !isFALSE(legend) && !is.na(legend)) {
+    pos <- "topright"
+    if (is.character(legend)) pos <- legend
+    methods <- names(res$predict)
+    legend(
+      pos,
+      col=c("black", method_colors[methods]),
+      legend=c("true", methods), lwd=2)
+  }
+}
 
-  par(mar=c(2,0,0,0))
+plot_rainbow_time <- function() {
+  #mar <- par("mar")
+  #par(mar=c(2,0,0,0))
   plot.new()
   plot.window(xlim = c(0, 1), ylim = c(0, 1))
   x <- seq(0, 1, len=300)
@@ -78,24 +102,9 @@ plot_run <- function(res) {
   for (i in 1:299) rect(x[i], 0, x[i+1], 1, col=colors[i], border=NA)
   ticks <- seq(0,1,0.2)
   axis(1, at = ticks, labels = ticks, pos = 0)
+  #par(mar=mar)
 }
 
-striped_lines_a <- function(xy, ...) {
-  striped_lines(xy[, 2:1], ...)
-}
-
-striped_lines <- function(xy, col, ...) {
-  rgba <- col2rgb(col, alpha=TRUE)
-  col_dark <- rgb(rgba[1]/2, rgba[2]/2, rgba[3]/2, rgba[4], maxColorValue=255)
-  lines_jump(xy, col = col, lend = 1, ...)
-  n <- nrow(xy)
-  m <- 5
-  for (i in 1:m) {
-    lines_jump(
-      xy[round(i * n / m - n / 2 / m):round(i * n / m), ],
-      col = col_dark, lend = 1, ...)
-  }
-}
 
 lines_jump <- function(y, ...) {
   diffs <- rowMeans(apply(y, 2, diff)^2)
@@ -135,19 +144,7 @@ sphere_grid <- function(n=7) {
 }
 
 
-#' @export
-sim_plot_run <- function(run) {
-  plot(NA,
-       xlim=c(0, 2*pi), ylim=c(0, pi),
-       xlab="phi", ylab="alpha")
-  sphere_grid()
-  striped_lines_a(run$m_a, col="gray", lwd=3)
-  points(run$y_a[, 2:1])
-  for (meth in linreg_methods)
-    striped_lines_a(run[[meth]]$estim_a, col=method_colors[[meth]], lwd=2)
-  legend("topright", col=unlist(method_colors), lwd=2, legend=linreg_methods)
-}
-
+# TODO
 
 #' @export
 sim_plot_biasvar <- function(sim) {

@@ -1,60 +1,41 @@
-sim_extract_ise <- function(s) {
-  ise_lst <- list(frechet=NA, geodesic=NA, cosine=NA)
-
-  ise <- function(a, b) {
-    mean(dist(a, b)^2)
-  }
-
-  for (i in seq_along(s)) {
-    run <- s[[i]]
-    for (meth in linreg_methods) {
-      ise_lst[[meth]][i] <- ise(run$m, run[[meth]]$estim)
-    }
-  }
-
-  ise_lst
+get_ise <- function(all_res) {
+  lapply(all_res, function(runs_res) {
+    sapply(runs_res, function(res) {
+      sapply(names(res$predict), function(meth) {
+        mean(dist_a(res$predict[[meth]]$estim_a, res$data$m_new_a)^2)
+      })
+    })
+  })
 }
 
-sim_extract_ise_stats_one <- function(s) {
-  opt <- list(n=s[[1]]$n, sd=s[[1]]$sd, speed=s[[1]]$speed)
-  ise <- sim_extract_ise(s)
-  summaries_ise <- lapply(ise, function(x) c(
-    mean=mean(x), median=median(x), sd=sd(x), min=min(x), max=max(x),
-    quartile1=quantile(x, 0.25), quartile3=quantile(x, 0.75)
-  ))
-  idx_median <- lapply(ise, which_median)
-  median_curves <- list()
-  for (meth in linreg_methods) {
-    median_curves[[meth]] <- s[[idx_median[[meth]] ]][[meth]]$estim
+get_ise_summaries_from_ise <- function(ise) {
+  lapply(ise, function(y) {apply(y, 1, function(x)
+    c(
+      mean=mean(x), median=median(x), sd=sd(x), min=min(x), max=max(x),
+      quantile(x, 0.25), quantile(x, 0.75), idx_median=which_median(x)
+    ))})
+}
+
+get_mise_tibble_from_ise_summaries <- function(opt_list, ise_summaries) {
+  mise <- tibble::tibble()
+  for (i in seq_along(opt_list)) {
+    mise[i,"n"] <- opt_list[[i]]$samp$n
+    mise[i,"sd"] <- opt_list[[i]]$samp$sd
+    mise[i, "curve"] <- opt_list[[i]]$simu$curve
+    mise[i, colnames(ise_summaries[[i]])] <- as.list(ise_summaries[[i]]["mean",])
   }
-  list(
-    opt = unlist(opt),
-    summaries = summaries_ise,
-    median_curves = median_curves,
-    idx_median = idx_median
-  )
+  mise
 }
 
 #' @export
-sim_extract_ise_stats <- function(sim) {
-  lapply(sim, sim_extract_ise_stats_one)
+get_mise_tibble <- function(opt_list, all_res) {
+  ise <- get_ise(all_res)
+  ise_summaries <- get_ise_summaries_from_ise(ise)
+  get_mise_tibble_from_ise_summaries(opt_list, ise_summaries)
 }
 
-#' @export
-mise_table_from_ise_stats <- function(ise_stats, stats="mean") {
-  extract_stat <- function(x, stat) {
-    res <- sapply(linreg_methods, function(meth) x$summaries[[meth]][[stat]])
-    names(res) <- paste0(linreg_methods, "_", stat, "_ise")
-    res
-  }
-  extract_opts <- function(x) x$opt
-  stat_tables <- lapply(
-    stats,
-    function(stat) sapply(ise_stats, extract_stat, stat=stat)
-  )
-  t(rbind(sapply(ise_stats, extract_opts), Reduce(rbind, stat_tables)))
-}
 
+# TODO: all speed functions
 sim_extract_speed_se <- function(s) {
   speed_se <- list(geodesic=NA, cosine=NA)
   for (i in seq_along(s)) {
