@@ -76,7 +76,7 @@ exec_optim <- function(x, y, max_speed, restarts = NULL, accuracy=0.5) {
 #'   estimated function
 #' @param max_speed a nonnegative scalar double, a bound on the maximum speed of
 #'   the geodesic
-estimate_geodesic <- function(x, y, x_new, max_speed, restarts = 2) {
+estimate_lingeo <- function(x, y, x_new, max_speed, restarts = 2) {
   res <- exec_optim(x, y, max_speed, restarts)
   estim <- Exp(res$p, x_new %*% res$v)
   estim_a <- convert_e2a(estim)

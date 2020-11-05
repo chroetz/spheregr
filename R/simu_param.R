@@ -59,7 +59,7 @@ sample_data <- function(n, sd, x_new=NULL, speed_bounds=NULL, p=NULL, v=NULL) {
 
 
 
-linreg <- function(x, y, x_new,
+param_reg <- function(x, y, x_new,
                    method = c("frechet", "geodesic", "cosine"),
                    speed_bounds = c(0, 10),
                    restarts = 2) {
@@ -72,11 +72,11 @@ linreg <- function(x, y, x_new,
 }
 
 
-run_one <- function(opt) {
+param_run_one <- function(opt) {
   data <- sample_data(opt$n, opt$sd, x_new=opt$x_new, speed_bounds=opt$speed, v=opt$v, p=opt$p)
   res <- list()
   for (meth in linreg_methods) {
-    res[[meth]] <- linreg(data$x, data$y, data$x_new, method=meth, speed_bounds=opt$speed_bounds)
+    res[[meth]] <- param_reg(data$x, data$y, data$x_new, method=meth, speed_bounds=opt$speed_bounds)
   }
   c(data, res)
 }
@@ -109,6 +109,6 @@ create_linreg_opts <- function(
 
 simulate <- function(opts) {
   lapply(opts, function(opt) {
-    replicate(opt$reps, run_one(opt), simplify=FALSE)
+    replicate(opt$reps, param_run_one(opt), simplify=FALSE)
   })
 }

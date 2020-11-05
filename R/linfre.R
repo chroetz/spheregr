@@ -5,7 +5,7 @@ frechet_objective <- function(par, y_a, yo, B_inv, X, X_eval_t) {
   X_eval_t %*% beta_hat_q
 }
 
-estimate_frechet <- function(x, y, x_new, restarts = 2) {
+estimate_linfre <- function(x, y, x_new, restarts = 2) {
   N <- restarts
   initial_parameters <-
     expand.grid(

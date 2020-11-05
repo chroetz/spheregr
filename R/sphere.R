@@ -122,10 +122,11 @@ add_noise_normal <- function(m, sd) {
 #' Add contracted uniform noise to points on sphere.
 #'
 #' @param m nx3. points on sohere in R3 coordinates.
-#' @param t double in [0,1]. Contraction parameter.
-add_noise_contract <- function(m, t) {
+#' @param contr double in [0,1]. Contraction parameter.
+add_noise_contract <- function(m, contr=NULL, sd=NULL) {
+  if (is.null(contr)) contr <- max(0, min(1, sd / sqrt((pi ^ 2 - 4) / 2)))
   for (i in seq_len(nrow(m))) {
-    m[i, ] <- r_sphere_contract(1, t, m=m[i, ])
+    m[i, ] <- r_sphere_contract(1, contr, m=m[i, ])
   }
   m
 }

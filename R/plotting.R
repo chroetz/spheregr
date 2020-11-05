@@ -40,6 +40,7 @@ points_mercator <- function(y_a=NULL, y=NULL, m_a=NULL, palette=rainbow, ...) {
   }
 }
 
+#' @export
 plot_run <- function(res) {
   layout(
     matrix(1:2, ncol=1),

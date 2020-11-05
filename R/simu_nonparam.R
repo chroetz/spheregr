@@ -80,6 +80,7 @@ nonparam_run_one <- function(osamp, ometh, verbosity=1) {
   list(data=data, predict=res)
 }
 
+#' @export
 create_nonparam_opt <- function(
   reps, n, sd, n_new, curve = c("simple", "spiral"),
   trigeo=3, others=TRUE) {
@@ -144,6 +145,7 @@ create_nonparam_opt <- function(
 }
 
 
+#' @export
 nonparam_simulate <- function(opt_list, verbosity=1) {
   all_res <- list()
   for (i in seq_along(opt_list)) {
@@ -176,10 +178,11 @@ nonparam_simulate <- function(opt_list, verbosity=1) {
 }
 
 
+#' @export
 nonparam_simulate_parallel <- function(opt_list) {
   cores <- parallel::detectCores()
   cl <- parallel::makeCluster(cores)
-  parallel::clusterEvalQ(cl, devtools::load_all(".")) # TODO!
+  # parallel::clusterEvalQ(cl, devtools::load_all(".")) # TODO!
   all_res <- lapply(opt_list, function(opt) {
     parallel::parLapply(cl, seq_len(opt$simu$reps), nonparam_run_one, osamp=opt$samp, ometh=opt$meth)
   })
