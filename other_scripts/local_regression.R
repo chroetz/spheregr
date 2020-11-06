@@ -1,4 +1,6 @@
-reps <- 200
+library(spheregr)
+set.seed(1)
+reps <- 500
 n_new <- 50
 opt_list <- list(
   create_nonparam_opt(reps, 20, 0.25, n_new=n_new, curve="simple", trigeo=3),
@@ -9,7 +11,9 @@ opt_list <- list(
   create_nonparam_opt(reps, 20, 1.00, n_new=n_new, curve="spiral", trigeo=3),
   create_nonparam_opt(reps, 80, 1.00, n_new=n_new, curve="simple", trigeo=3),
   create_nonparam_opt(reps, 80, 1.00, n_new=n_new, curve="spiral", trigeo=3)
-)
+) # reps=200, 45257.56
+# reps=500: 103294.8
+
 # cat("simulate", system.time({
 #   all_res <- nonparam_simulate(opt_list, verbosity=10)
 # })[3], "\n")
@@ -42,3 +46,4 @@ for (i in seq_along(opt_list)) {
   tbl[i, "curve"] <- opt_list[[i]]$simu$curve
   tbl[i, names(mise[[i]])] <- as.list(mise[[i]])
 }
+

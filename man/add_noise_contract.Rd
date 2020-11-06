@@ -4,12 +4,12 @@
 \alias{add_noise_contract}
 \title{Add contracted uniform noise to points on sphere.}
 \usage{
-add_noise_contract(m, t)
+add_noise_contract(m, contr = NULL, sd = NULL)
 }
 \arguments{
 \item{m}{nx3. points on sohere in R3 coordinates.}
 
-\item{t}{double in \link{0,1}. Contraction parameter.}
+\item{contr}{double in \link{0,1}. Contraction parameter.}
 }
 \description{
 Add contracted uniform noise to points on sphere.

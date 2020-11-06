@@ -229,8 +229,12 @@ simulate <- function(opt_list, verbosity=1) {
 #' Repetitions of each setting a run in parallel.
 #'
 #' @export
-simulate_parallel <- function(opt_list, cores=parallel::detectCores()) {
+simulate_parallel <- function(opt_list, cores=parallel::detectCores(), seed=NULL) {
   cl <- parallel::makeCluster(cores)
+  if (!is.null(seed)) {
+    set.seed(seed)
+    parallel::clusterSetRNGStream(cl, seed)
+  }
   all_res <- lapply(opt_list, function(opt) {
     parallel::parLapply(
       cl,
