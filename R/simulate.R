@@ -99,7 +99,8 @@ simu_run_one <- function(osamp, ometh, verbosity=1) {
 #' @export
 create_opt <- function(
   reps, n, sd, n_new,
-  curve = c("spiral_closed", "spiral_open", "geodesic"), speed = pi,
+  curve = c("spiral_closed", "spiral_open", "geodesic"),
+  geo_speed = pi, geo_p = NULL, geo_v = NULL,
   methods=NULL, method_opts=NULL) {
 
   o <- list(samp = list(),
@@ -134,9 +135,12 @@ create_opt <- function(
          },
          geodesic = {
            o$samp$curve <- "geodesic"
-           o$samp$speed_bounds <- speed
-           if (abs((pi + speed) %% (2*pi) - pi) < 0.01) periodic <- TRUE
+           o$samp$speed_bounds <- geo_speed
+           o$samp$p <- geo_p
+           o$samp$v <- geo_v
+           if (abs((pi + geo_speed) %% (2*pi) - pi) < 0.01) periodic <- TRUE
            else periodic <- FALSE
+           o$samp
          }
   )
 
@@ -192,7 +196,10 @@ create_opt <- function(
 
 
 #' @export
-simulate <- function(opt_list, verbosity=1) {
+simulate <- function(opt_list, verbosity=1, seed=NULL) {
+  if (!is.null(seed)) {
+    set.seed(seed)
+  }
   all_res <- list()
   for (i in seq_along(opt_list)) {
     opt <- opt_list[[i]]

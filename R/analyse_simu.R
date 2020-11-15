@@ -34,6 +34,26 @@ get_mise_tibble <- function(opt_list, all_res) {
   get_mise_tibble_from_ise_summaries(opt_list, ise_summaries)
 }
 
+#' @export
+pretty_print_mise <- function(mise, format) {
+  rel_min <- log10(t(apply(mise[,-(1:3)], 1, function(x) x/min(x))))
+  color_index <- round(1 + 99 * rel_min)
+  color_index[color_index > 100] <- 100
+  bkgnd_cols <- colorRampPalette(c(rgb(0.5,1,0.5), rgb(1,1,0.5), rgb(1,0.5,0.5)))(100)
+
+  mise %>%
+    kableExtra::kbl(
+      format,
+      col.names = colnames(mise),
+      digits = 5) %>%
+    kableExtra::kable_styling(bootstrap_options = c("striped")) ->
+    kbl_obj
+  for (i in seq_len(ncol(mise)-3))
+    kbl_obj <- kableExtra::column_spec(kbl_obj, 3+i, background = bkgnd_cols[color_index[,i]])
+  kableExtra::add_header_above(kbl_obj, c("Setting" = 3, "MISE" = ncol(mise)-3))
+}
+
+
 
 # TODO: all speed functions
 sim_extract_speed_se <- function(s) {

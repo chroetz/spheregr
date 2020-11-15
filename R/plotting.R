@@ -11,13 +11,21 @@ method_colors <- c(
   trigeo = "#FF00FF"
 )
 
-#' @export
-plot_mercator_base <- function() {
-  plot(NA, ylim=c(0, pi), xlim=c(0, 2*pi), ylab="theta", xlab="phi", xaxt="n", yaxt="n")
+plot_mercator_base <- function(latex=FALSE) {
+  plot(NA, ylim=c(0, pi), xlim=c(0, 2*pi), xlab=NA, ylab=NA, xaxt="n", yaxt="n")
   xtick <- seq(0, 2*pi, len=5)
   ytick <- seq(0, pi, len=3)
-  axis(side=1, at=xtick, labels = c("0", "pi/2", "pi", "3pi/2", "2pi"))
-  axis(side=2, at=ytick, labels = c("0", "pi/2", "pi"))
+  if (latex) {
+    xticktxt <- c("$0$", "$\\frac12\\pi$", "$\\pi$", "$\\frac32\\pi$", "$2\\pi$")
+    yticktxt <- c("$0$", "$\\frac12\\pi$", "$\\pi$")
+    title(xlab="$\\varphi$", ylab="$\\vartheta$")
+  } else {
+    xticktxt <- c("0", "pi/2", "pi", "3pi/2", "2pi")
+    yticktxt <- c("0", "pi/2", "pi")
+    title(xlab="phi", ylab="theta")
+  }
+  axis(side=1, at=xtick, labels = xticktxt)
+  axis(side=2, at=ytick, labels = yticktxt)
   sphere_grid()
 }
 
@@ -33,7 +41,6 @@ wrap_line <- function(theta, phi, ...) {
   }
 }
 
-#' @export
 lines_mercator <- function(y_a=NULL, y=NULL, palette=rainbow, ...) {
   if (is.null(y_a)) y_a <- convert_e2a(y)
   colors <- palette(nrow(y_a)-1)
@@ -42,7 +49,6 @@ lines_mercator <- function(y_a=NULL, y=NULL, palette=rainbow, ...) {
   }
 }
 
-#' @export
 points_mercator <- function(y_a=NULL, y=NULL, m_a=NULL, palette=rainbow, ...) {
   if (is.null(y_a)) y_a <- convert_e2a(y)
   colors <- palette(nrow(y_a))
@@ -60,11 +66,11 @@ plot_run <- function(res, rainbow=TRUE, legend=FALSE) {
     with(data, {
       plot_mercator_base()
       if (rainbow) {
-        lines_mercator(m_a, palette=palette_const(1), lwd=8)
-        lines_mercator(m_a, palette=palette_rainbow, lwd=2)
+        lines_mercator(m_new_a, palette=palette_const(1), lwd=8)
+        lines_mercator(m_new_a, palette=palette_rainbow, lwd=2)
         points_mercator(y_a, m_a=m_a, palette=palette_rainbow, pch=21, cex=1.5)
       } else {
-        lines_mercator(m_a, palette=palette_const(1), lwd=2)
+        lines_mercator(m_new_a, palette=palette_const(1), lwd=2)
         points_mercator(y_a, m_a=m_a, palette=palette_const(1), pch=21, cex=1.5)
       }
     })
