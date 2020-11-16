@@ -11,7 +11,7 @@ estimate_locfre(
   adapt = c("loocv", "none"),
   bw = 7,
   kernel = "epanechnikov",
-  restarts = 2
+  grid_size = 2
 )
 }
 \arguments{

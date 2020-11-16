@@ -20,8 +20,8 @@ locgeo_optim_fn <- function(par, x, y, w) {
   locgeo_energy(p, v, x, y, w)
 }
 
-locgeo_optim <- function(x, y, w, max_speed, restarts, accuracy) {
-  init_par <- get_initial_parameters(max_speed, restarts)
+locgeo_optim <- function(x, y, w, max_speed, grid_size, accuracy) {
+  init_par <- get_initial_parameters(grid_size, max_speed)
   res_lst <- list()
   for (i in seq_len(nrow(init_par))) {
     res_lst[[i]] <- stats::optim(
@@ -44,14 +44,14 @@ locgeo_optim <- function(x, y, w, max_speed, restarts, accuracy) {
   list(p = p, v = v, par=res$par)
 }
 
-.estimate_locgeo <- function(x, y, x_new, kernel_fun, h, max_speed, restarts, accuracy) {
+.estimate_locgeo <- function(x, y, x_new, kernel_fun, h, max_speed, grid_size, accuracy) {
   estim <- matrix(NA_real_, ncol=3, nrow=length(x_new))
   for (i in seq_along(x_new)) {
     t <- x_new[i]
     w <- kernel_fun((x-t)/h) / h
     w <- w / sum(w)
     if (!all(is.finite(w))) stop("Not all weights are finite.")
-    res <- locgeo_optim(x, y, w, max_speed, restarts, accuracy)
+    res <- locgeo_optim(x, y, w, max_speed, grid_size, accuracy)
     estim[i,] <- Exp(res$p, t*res$v)
   }
   estim_a <- convert_e2a(estim)
@@ -59,7 +59,7 @@ locgeo_optim <- function(x, y, w, max_speed, restarts, accuracy) {
 }
 
 
-#' Local goedesic regression on the sphere with cross validation.
+#' Local geodesic regression on the sphere with cross validation.
 #'
 #' Uses leave one out cross validation to find a suitable bandwidth
 #'
@@ -71,7 +71,7 @@ estimate_locgeo <- function(
   x, y, x_new,
   adapt=c("loocv", "none"),
   bw=7, kernel = "epanechnikov",
-  max_speed=10, restarts = NULL, accuracy=0.3
+  max_speed=10, grid_size = 2, accuracy=0.25
 ) {
   kernel_fun <- get_kernel_fun(kernel)
   adapt <- match.arg(adapt)
@@ -81,7 +81,7 @@ estimate_locgeo <- function(
     dists <- sapply(hs, function(h) {
       v <- sapply(seq_along(x), function(j) {
         res <- .estimate_locgeo(x[-j], y[-j,], x[j],
-                                kernel_fun, h, max_speed, restarts, accuracy)
+                                kernel_fun, h, max_speed, grid_size, accuracy)
         dist(res$estim, y[j, ])
       })
       mean(v)
@@ -90,5 +90,5 @@ estimate_locgeo <- function(
   } else {
     h <- bw
   }
-  c(.estimate_locgeo(x, y, x_new, kernel_fun, h, max_speed, restarts, accuracy), list(h = h))
+  c(.estimate_locgeo(x, y, x_new, kernel_fun, h, max_speed, grid_size, accuracy), list(h = h))
 }

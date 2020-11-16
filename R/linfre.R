@@ -5,15 +5,8 @@ frechet_objective <- function(par, y_a, yo, B_inv, X, X_eval_t) {
   X_eval_t %*% beta_hat_q
 }
 
-estimate_linfre <- function(x, y, x_new, restarts = 2) {
-  N <- restarts
-  initial_parameters <-
-    expand.grid(
-      alpha = (0:(N - 1)) * pi / N + pi / N / 2,
-      phi = (0:(N - 1)) * 2 * pi / N + 2 * pi / N / 2
-    ) %>%
-    as.matrix()
-
+estimate_linfre <- function(x, y, x_new, grid_size = 2) {
+  initial_parameters <- get_initial_parameters(grid_size, num_basis=0)
   estim_a <- matrix(nrow = length(x_new), ncol = 2)
 
   y_a <- convert_e2a(y)

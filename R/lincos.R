@@ -23,15 +23,9 @@ cos_objective <- function(q_a, BinvXy, x_new, speed) {
 }
 
 
-estimate_lincos <- function(x, y, x_new, max_speed, restarts = 2) {
+estimate_lincos <- function(x, y, x_new, max_speed, grid_size = 2) {
   # estimate speed
-  N <- 2
-  M <- 2
-  q_a <- expand.grid(
-    alpha = (0:(N - 1)) * pi / N + pi / N / 2,
-    phi = (0:(M - 1)) * 2 * pi / M + 2 * pi / M / 2
-  ) %>%
-    as.matrix()
+  q_a <- get_initial_parameters(grid_size, num_basis=0)
   q <- convert_a2e(q_a)
   res <- cos_estim_speed(x, y, q, max_speed)
   speed <- res$minimum
@@ -40,12 +34,7 @@ estimate_lincos <- function(x, y, x_new, max_speed, restarts = 2) {
   X <- rbind(cos(speed * x), sin(speed * x))
   B <- X %*% t(X)
   BinvXy <- solve(B, X %*% y)
-  N <- restarts
-  initial_parameters <- expand.grid(
-    alpha = (0:(N - 1)) * pi / N + pi / N / 2,
-    phi = (0:(N - 1)) * 2 * pi / N + 2 * pi / N / 2
-  ) %>%
-    as.matrix()
+  initial_parameters <-  get_initial_parameters(grid_size, num_basis=0)
   estim_a <- matrix(nrow = length(x_new), ncol = 2)
   for (j in seq_along(x_new)) {
     res_lst <- list()

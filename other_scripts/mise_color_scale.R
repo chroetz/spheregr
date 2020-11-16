@@ -1,0 +1,10 @@
+x <- seq(1, 20, len=1000)
+rel_min <- log10(x)
+color_index <- round(1 + 99 * rel_min)
+color_index[color_index > 100] <- 100
+bkgnd_cols <- colorRampPalette(c(rgb(0.5,1,0.5), rgb(1,1,0.5), rgb(1,0.5,0.5)))(100)
+pdf("mise_color_scale.pdf", width=10, height=2)
+plot(NA, xlim=c(1, 20), ylim=c(0,1), yaxt='n', xlab="error relative to minimal error", ylab=NA, bty="n", log="x")
+for (i in 2:n)
+  rect(x[i-1], 0, x[i], 1, col=bkgnd_cols[color_index[i]], border=NA)
+dev.off()

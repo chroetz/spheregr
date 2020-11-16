@@ -2,9 +2,13 @@ methods <- c("linfre", "lincos", "lingeo", "locfre", "trifre", "locgeo", "trigeo
 
 
 spiral_fun <- function(theta_min, theta_max = theta_min, phi_start = 0.5, circles = 1) {
+  force(theta_min)
+  force(theta_max)
+  force(phi_start)
+  force(circles)
   function(x) {
     phi <- (phi_start + x * 2 * pi * circles) %% (2 * pi)
-    theta <- theta_min + x * (theta_max - theta_max)
+    theta <- theta_min + x * (theta_max - theta_min)
     m_a <- cbind(theta, phi)
     list(m=convert_a2e(m_a), m_a=m_a)
   }
@@ -12,6 +16,8 @@ spiral_fun <- function(theta_min, theta_max = theta_min, phi_start = 0.5, circle
 
 
 geodesic_fun <- function(speed_bounds=NULL, p=NULL, v=NULL) {
+  force(p)
+  force(v)
   speed_target <-
     if (length(speed_bounds) == 2) {
       runif(1, min = speed_bounds[1], max = speed_bounds[2])
@@ -101,6 +107,7 @@ create_opt <- function(
   reps, n, sd, n_new,
   curve = c("spiral_closed", "spiral_open", "geodesic"),
   geo_speed = pi, geo_p = NULL, geo_v = NULL,
+  accuracy = 0.25, grid_size = 2,
   methods=NULL, method_opts=NULL) {
 
   o <- list(samp = list(),
@@ -152,35 +159,35 @@ create_opt <- function(
         adapt = "loocv",
         kernel = "epanechnikov",
         bw = 7,
-        restarts = 3
+        grid_size = grid_size
       ),
       trifre = list(
         adapt = "loocv",
         num_basis = 20,
         periodize = !periodic,
-        restarts =  3
+        grid_size =  grid_size
       ),
       locgeo = list(
         adapt = "loocv",
         bw = 7,
         kernel = "epanechnikov",
         max_speed = 5,
-        restarts = NULL,
-        accuracy = 0.25
+        grid_size = grid_size,
+        accuracy = accuracy
       ),
       trigeo = list(
         adapt = "none",
         num_basis = 3,
         periodize = !periodic,
         max_speed = 5,
-        restarts = NULL,
-        accuracy = 0.25
+        grid_size = grid_size,
+        accuracy = accuracy
       ),
-      linfre = list(restarts = 2),
+      linfre = list(grid_size = grid_size),
       lincos = list(max_speed = 10,
-                    restarts = 2),
+                    grid_size = grid_size),
       lingeo = list(max_speed = 10,
-                    restarts = 2)
+                    grid_size = grid_size)
     )
 
     opts <- default_opts

@@ -5,15 +5,8 @@ trifre_objective <- function(par, y_a, yo, B) {
 }
 
 
-.estimate_trifre <- function(x, y, x_new, num_basis, periodize, restarts) {
-  N <- restarts
-  initial_parameters <-
-    expand.grid(
-      alpha = (0:(N - 1)) * pi / N + pi / N / 2,
-      phi = (0:(N - 1)) * 2 * pi / N + 2 * pi / N / 2
-    ) %>%
-    as.matrix()
-
+.estimate_trifre <- function(x, y, x_new, num_basis, periodize, grid_size) {
+  initial_parameters <- get_initial_parameters(grid_size, num_basis=0)
   estim_a <- matrix(nrow = length(x_new), ncol = 2)
   n <- length(x)
 
@@ -54,7 +47,7 @@ trifre_objective <- function(par, y_a, yo, B) {
 
 #' @export
 estimate_trifre <- function(x, y, x_new, adapt=c("loocv", "none"), num_basis=20,
-                            periodize=FALSE, restarts = 2) {
+                            periodize=FALSE, grid_size = 2) {
   adapt <- match.arg(adapt)
   if (adapt == "loocv") {
     n <- length(x)
@@ -63,7 +56,7 @@ estimate_trifre <- function(x, y, x_new, adapt=c("loocv", "none"), num_basis=20,
       v <- sapply(seq_along(x), function(j) {
         res <- .estimate_trifre(
           x[-j], y[-j,], x[j],
-          num_b, periodize, restarts)
+          num_b, periodize, grid_size)
         dist(res$estim, y[j, ])
       })
       mean(v)
@@ -72,5 +65,5 @@ estimate_trifre <- function(x, y, x_new, adapt=c("loocv", "none"), num_basis=20,
   } else {
     num_b <- num_basis
   }
-  c(.estimate_trifre(x, y, x_new, num_b, periodize, restarts), list(num_basis = num_b))
+  c(.estimate_trifre(x, y, x_new, num_b, periodize, grid_size), list(num_basis = num_b))
 }

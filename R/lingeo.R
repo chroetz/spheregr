@@ -22,30 +22,8 @@ optim_fn <- function(par, x, y) {
   energy(p, v, x, y)
 }
 
-get_initial_parameters <- function(max_speed, restarts = NULL, num_basis = 1) {
-  init_par <- as.matrix(expand.grid(c(list(
-      alpha = c(pi / 3, 2 * pi / 3),
-      phi = c(2 * pi / 3, 4 * pi / 3)
-    ),
-    rep(list(max_speed / 3 / sqrt(2) * c(1, -1)),num_basis*2)
-    )
-  ))
-  if (!is.null(restarts) && nrow(init_par) > restarts) {
-    init_par <- init_par[sample(nrow(init_par), restarts), ]
-  }
-  if (!is.null(restarts) && nrow(init_par) < restarts) {
-    k <- restarts - nrow(init_par)
-    init_par <- rbind(init_par, cbind(
-      alpha = runif(k)*pi,
-      phi = runif(k)*pi*2,
-      matrix(runif(k*2*num_basis, min=-max_speed, max=max_speed), ncol=2*num_basis)
-    ))
-  }
-  init_par
-}
-
-exec_optim <- function(x, y, max_speed, restarts = NULL, accuracy=0.5) {
-  initial_parameters <- get_initial_parameters(max_speed, restarts)
+exec_optim <- function(x, y, max_speed, grid_size, accuracy=0.5) {
+  initial_parameters <- get_initial_parameters(grid_size, max_speed)
   res_lst <- list()
   for (i in seq_len(nrow(initial_parameters))) {
     res_lst[[i]] <- stats::optim(
@@ -76,8 +54,8 @@ exec_optim <- function(x, y, max_speed, restarts = NULL, accuracy=0.5) {
 #'   estimated function
 #' @param max_speed a nonnegative scalar double, a bound on the maximum speed of
 #'   the geodesic
-estimate_lingeo <- function(x, y, x_new, max_speed, restarts = 2) {
-  res <- exec_optim(x, y, max_speed, restarts)
+estimate_lingeo <- function(x, y, x_new, max_speed, grid_size = 2) {
+  res <- exec_optim(x, y, max_speed, grid_size)
   estim <- Exp(res$p, x_new %*% res$v)
   estim_a <- convert_e2a(estim)
   c(list(estim=estim, estim_a=estim_a), res)

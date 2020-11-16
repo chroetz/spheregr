@@ -22,8 +22,8 @@ trigeo_optim_fn <- function(par, phi, y, num_basis) {
 
 #' @param accuracy double in [0,1]. trade optimization accuracy for
 #'   computational speed
-trigeo_optim <- function(x, y, max_speed, num_basis, restarts, accuracy) {
-  init_par <- get_initial_parameters(max_speed, restarts=restarts, num_basis=num_basis)
+trigeo_optim <- function(x, y, max_speed, num_basis, grid_size, accuracy) {
+  init_par <- get_initial_parameters(grid_size, max_speed, num_basis=num_basis)
   res_lst <- list()
   phi <- t(eval_trig_base(x, num_basis+1))[,-1,drop=FALSE]
   for (i in seq_len(nrow(init_par))) {
@@ -47,7 +47,7 @@ trigeo_optim <- function(x, y, max_speed, num_basis, restarts, accuracy) {
   list(p = p, v = v, par=res$par)
 }
 
-.estimate_trigeo <- function(x, y, x_new, num_basis, periodize, max_speed, restarts, accuracy) {
+.estimate_trigeo <- function(x, y, x_new, num_basis, periodize, max_speed, grid_size, accuracy) {
 
   if (periodize) {
     n <- length(x)
@@ -56,7 +56,7 @@ trigeo_optim <- function(x, y, max_speed, num_basis, restarts, accuracy) {
     x_new <- x_new/2
   }
 
-  res <- trigeo_optim(x, y, max_speed, num_basis, restarts, accuracy)
+  res <- trigeo_optim(x, y, max_speed, num_basis, grid_size, accuracy)
   phi <- t(eval_trig_base(x_new, num_basis+1))[,-1,drop=FALSE]
   estim <- Exp(res$p, phi %*% res$v)
   estim_a <- convert_e2a(estim)
@@ -68,7 +68,7 @@ trigeo_optim <- function(x, y, max_speed, num_basis, restarts, accuracy) {
 estimate_trigeo <- function(
   x, y, x_new,
   adapt=c("loocv", "none"), num_basis=5, periodize=FALSE,
-  max_speed = 10, restarts = NULL, accuracy=0.3
+  max_speed = 10, grid_size = 2, accuracy=0.3
 ) {
   adapt <- match.arg(adapt)
   if (adapt == "loocv") {
@@ -77,7 +77,7 @@ estimate_trigeo <- function(
       v <- sapply(seq_along(x), function(j) {
         res <- .estimate_trigeo(x[-j], y[-j,], x[j],
                                 num_b, periodize, max_speed,
-                                restarts, accuracy)
+                                grid_size, accuracy)
         dist(res$estim, y[j, ])
       })
       mean(v)
@@ -86,6 +86,6 @@ estimate_trigeo <- function(
   } else {
     num_b <- num_basis
   }
-  c(.estimate_trigeo(x, y, x_new, num_b, periodize, max_speed, restarts, accuracy),
+  c(.estimate_trigeo(x, y, x_new, num_b, periodize, max_speed, grid_size, accuracy),
     list(num_basis = num_b))
 }

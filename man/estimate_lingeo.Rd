@@ -4,7 +4,7 @@
 \alias{estimate_lingeo}
 \title{Use geodesic regression to find the best fitting geodesic}
 \usage{
-estimate_lingeo(x, y, x_new, max_speed, restarts = 2)
+estimate_lingeo(x, y, x_new, max_speed, grid_size = 2)
 }
 \arguments{
 \item{x}{covariate, a vector of length n with values in \link{0, 1}}

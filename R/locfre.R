@@ -6,15 +6,8 @@ locfre_objective <- function(par, y_a, yo, w, X, X_eval_t) {
   X_eval_t %*% beta_hat_q
 }
 
-.estimate_locfre <- function(x, y, x_new, kernel, h, restarts) {
-  N <- restarts
-  initial_parameters <-
-    expand.grid(
-      alpha = (0:(N - 1)) * pi / N + pi / N / 2,
-      phi = (0:(N - 1)) * 2 * pi / N + 2 * pi / N / 2
-    ) %>%
-    as.matrix()
-
+.estimate_locfre <- function(x, y, x_new, kernel, h, grid_size) {
+  initial_parameters <- get_initial_parameters(grid_size, num_basis=0)
   estim_a <- matrix(nrow = length(x_new), ncol = 2)
 
   y_a <- convert_e2a(y)
@@ -57,7 +50,7 @@ locfre_objective <- function(par, y_a, yo, w, X, X_eval_t) {
 #' @export
 estimate_locfre <- function(
   x, y, x_new,
-  adapt=c("loocv", "none"), bw=7, kernel="epanechnikov", restarts = 2
+  adapt=c("loocv", "none"), bw=7, kernel="epanechnikov", grid_size = 2
 ) {
   kernel_fun <- get_kernel_fun(kernel)
   adapt <- match.arg(adapt)
@@ -66,7 +59,7 @@ estimate_locfre <- function(
     hs <- (3/n)^seq(1, 0, len=bw)
     dists <- sapply(hs, function(h) {
       v <- sapply(seq_along(x), function(j) {
-        res <- .estimate_locfre(x[-j], y[-j,], x[j], kernel_fun, h, restarts)
+        res <- .estimate_locfre(x[-j], y[-j,], x[j], kernel_fun, h, grid_size)
         dist(res$estim, y[j, ])
       })
       mean(v)
@@ -75,5 +68,5 @@ estimate_locfre <- function(
   } else {
     h <- bw
   }
-  c(.estimate_locfre(x, y, x_new, kernel_fun, h, restarts), list(h = h))
+  c(.estimate_locfre(x, y, x_new, kernel_fun, h, grid_size), list(h = h))
 }

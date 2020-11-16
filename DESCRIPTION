@@ -16,7 +16,8 @@ Imports:
     Rcpp,
     lifecycle,
     tibble,
-    stats
+    stats,
+    kableExtra
 Suggests: 
     covr,
     testthat,

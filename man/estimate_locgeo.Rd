@@ -2,7 +2,7 @@
 % Please edit documentation in R/locgeo.R
 \name{estimate_locgeo}
 \alias{estimate_locgeo}
-\title{Local goedesic regression on the sphere with cross validation.}
+\title{Local geodesic regression on the sphere with cross validation.}
 \usage{
 estimate_locgeo(
   x,
@@ -12,8 +12,8 @@ estimate_locgeo(
   bw = 7,
   kernel = "epanechnikov",
   max_speed = 10,
-  restarts = NULL,
-  accuracy = 0.3
+  grid_size = 2,
+  accuracy = 0.25
 )
 }
 \arguments{

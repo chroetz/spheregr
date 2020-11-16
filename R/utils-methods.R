@@ -22,3 +22,13 @@ get_kernel_fun <- function(kernel = c("gaussian", "rectangular", "epanechnikov")
   }
   kernel_fun
 }
+
+
+get_initial_parameters <- function(grid_size, max_speed=10, num_basis=1) {
+  del <- 1/(2*grid_size)
+  ticks <- seq(del, 1-del, len=grid_size)
+  param_list <- c(
+    list(alpha = pi * ticks, phi = 2*pi*ticks),
+    rep(list(2*max_speed*ticks-max_speed), num_basis*2))
+  as.matrix(expand.grid(param_list))
+}
