@@ -26,6 +26,6 @@ timestamp <- format(Sys.time(), "%Y%m%d-%H%M%S")
 file_name <- paste0("simu_param_", timestamp, ".RData")
 save(all_res, opt_list, file=file_name)
 
-mise <- get_mise_tibble(opt_list, all_res)
+mise <- get_mise_tibble(opt_list, all_res, only_geo=TRUE)
 pretty_print_mise(mise, "html")
 

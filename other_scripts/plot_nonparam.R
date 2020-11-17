@@ -16,7 +16,7 @@ opt_list <- list(
   create_opt(1, 90,  1.0, n_new=nn, curve="spiral_open",   methods=me, accuracy=ac, grid_size=gs)
 )
 
-all_res <- simulate(opt_list, seed=1)
+all_res <- simulate(opt_list, seed=1) # 5 hours
 
 for (i in seq_along(all_res)) {
   file_name <- paste0("plot_nonparam_", i, ".pdf")

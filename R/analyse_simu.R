@@ -16,22 +16,25 @@ get_ise_summaries_from_ise <- function(ise) {
     ))})
 }
 
-get_mise_tibble_from_ise_summaries <- function(opt_list, ise_summaries) {
+get_mise_tibble_from_ise_summaries <- function(opt_list, ise_summaries, only_geo) {
   mise <- tibble::tibble()
   for (i in seq_along(opt_list)) {
     mise[i,"n"] <- opt_list[[i]]$samp$n
     mise[i,"sd"] <- opt_list[[i]]$samp$sd
-    mise[i, "curve"] <- opt_list[[i]]$simu$curve
+    if (only_geo)
+      mise[i, "speed"] <- opt_list[[i]]$samp$speed_bounds
+    else
+      mise[i, "curve"] <- opt_list[[i]]$simu$curve
     mise[i, colnames(ise_summaries[[i]])] <- as.list(ise_summaries[[i]]["mean",])
   }
   mise
 }
 
 #' @export
-get_mise_tibble <- function(opt_list, all_res) {
+get_mise_tibble <- function(opt_list, all_res, only_geo=FALSE) {
   ise <- get_ise(all_res)
   ise_summaries <- get_ise_summaries_from_ise(ise)
-  get_mise_tibble_from_ise_summaries(opt_list, ise_summaries)
+  get_mise_tibble_from_ise_summaries(opt_list, ise_summaries, only_geo)
 }
 
 #' @export
