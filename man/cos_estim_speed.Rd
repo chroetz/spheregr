@@ -4,7 +4,7 @@
 \alias{cos_estim_speed}
 \title{Estimate lambda of the (1D) cosine regression.}
 \usage{
-cos_estim_speed(x, y, q, max_speed)
+cos_estim_speed(x, y, q, max_speed, grid_size)
 }
 \arguments{
 \item{x}{double(n) in \link{0,1}, covariates.}

@@ -1,10 +1,11 @@
 get_ise <- function(all_res) {
   lapply(all_res, function(runs_res) {
-    sapply(runs_res, function(res) {
+    ise_matrix <- sapply(runs_res, function(res) {
       sapply(names(res$predict), function(meth) {
         mean(dist_a(res$predict[[meth]]$estim_a, res$data$m_new_a)^2)
       })
     })
+    matrix(ise_matrix, ncol=length(runs_res), dimnames=list(names(runs_res[[1]]$predict), NULL))
   })
 }
 

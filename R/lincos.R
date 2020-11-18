@@ -4,7 +4,7 @@
 #' @param y nx3 matrix, observations on sphere.
 #' @param q kx3 matrix, test points on sphere.
 #' @return double(1), estimated lambda
-cos_estim_speed <- function(x, y, q, max_speed) {
+cos_estim_speed <- function(x, y, q, max_speed, grid_size) {
   cos_dist_yq <- y %*% t(q)
   objective <- function(par) {
     X <- rbind(cos(par * x), sin(par * x))
@@ -12,7 +12,16 @@ cos_estim_speed <- function(x, y, q, max_speed) {
     pars_ab <- solve(B, X) %*% cos_dist_yq
     mean((t(X) %*% pars_ab - cos_dist_yq)^2)
   }
-  stats::optimize(objective, lower = 0, upper = max_speed)
+  res <- NULL
+  for (i in seq_len(grid_size)) {
+    can <- stats::optimize(
+      objective,
+      lower = (i-1)/grid_size*max_speed,
+      upper = i/grid_size*max_speed)
+    if (is.null(res) || can$objective < res$objective)
+      res <- can
+  }
+  res
 }
 
 
@@ -27,7 +36,7 @@ estimate_lincos <- function(x, y, x_new, max_speed, grid_size = 2) {
   # estimate speed
   q_a <- get_initial_parameters(grid_size, num_basis=0)
   q <- convert_a2e(q_a)
-  res <- cos_estim_speed(x, y, q, max_speed)
+  res <- cos_estim_speed(x, y, q, max_speed, grid_size)
   speed <- res$minimum
 
   # estimate m(t) via optim()

@@ -107,7 +107,7 @@ create_opt <- function(
   reps, n, sd, n_new,
   curve = c("spiral_closed", "spiral_open", "geodesic"),
   geo_speed = pi, geo_p = NULL, geo_v = NULL,
-  accuracy = 0.25, grid_size = 2,
+  accuracy = 0.25, grid_size = 3,
   methods=NULL, method_opts=NULL) {
 
   o <- list(samp = list(),
