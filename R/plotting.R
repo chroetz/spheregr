@@ -11,7 +11,17 @@ method_colors <- c(
   trigeo = "#FF00FF"
 )
 
-plot_mercator_base <- function(latex=FALSE) {
+method_uppercamelcase <- c(
+  linfre = "LinFre",
+  lincos = "LinCos",
+  lingeo = "LInGeo",
+  locfre = "LocFre",
+  trifre = "TriFre",
+  locgeo = "LocGeo",
+  trigeo = "TriGeo"
+)
+
+plot_mercator_base <- function(axis_cex=1.0, latex=FALSE) {
   plot(NA, ylim=c(0, pi), xlim=c(0, 2*pi), xlab=NA, ylab=NA, xaxt="n", yaxt="n")
   xtick <- seq(0, 2*pi, len=5)
   ytick <- seq(0, pi, len=3)
@@ -22,10 +32,10 @@ plot_mercator_base <- function(latex=FALSE) {
   } else {
     xticktxt <- c("0", "pi/2", "pi", "3pi/2", "2pi")
     yticktxt <- c("0", "pi/2", "pi")
-    title(xlab="phi", ylab="theta")
+    title(xlab="phi", ylab="theta", cex.lab=axis_cex)
   }
-  axis(side=1, at=xtick, labels = xticktxt)
-  axis(side=2, at=ytick, labels = yticktxt)
+  axis(side=1, at=xtick, labels = xticktxt, cex.axis=axis_cex)
+  axis(side=2, at=ytick, labels = yticktxt, cex.axis=axis_cex)
   sphere_grid()
 }
 
@@ -61,10 +71,10 @@ points_mercator <- function(y_a=NULL, y=NULL, m_a=NULL, palette=rainbow, ...) {
 }
 
 #' @export
-plot_run <- function(res, rainbow=TRUE, legend=FALSE) {
+plot_run <- function(res, rainbow=TRUE, legend=FALSE, legend_lwd=8, legend_cex=1.5, axis_cex=1.5) {
   with(res, {
     with(data, {
-      plot_mercator_base()
+      plot_mercator_base(axis_cex)
       if (rainbow) {
         lines_mercator(m_new_a, palette=palette_const(1), lwd=8)
         lines_mercator(m_new_a, palette=palette_rainbow, lwd=2)
@@ -88,13 +98,16 @@ plot_run <- function(res, rainbow=TRUE, legend=FALSE) {
   })
 
   if (!is.null(legend) && !isFALSE(legend) && !is.na(legend)) {
+    par_family <- par("family")
+    par(family="mono")
     pos <- "topright"
     if (is.character(legend)) pos <- legend
     methods <- names(res$predict)
     legend(
       pos,
       col=c("black", method_colors[methods]),
-      legend=c("true", methods), lwd=2)
+      legend=c("true", method_uppercamelcase[methods]), lwd=legend_lwd, cex=legend_cex, bg="white")
+    par(family = par_family)
   }
 }
 
