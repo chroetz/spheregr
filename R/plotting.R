@@ -14,21 +14,21 @@ method_colors <- c(
 method_uppercamelcase <- c(
   linfre = "LinFre",
   lincos = "LinCos",
-  lingeo = "LInGeo",
+  lingeo = "LinGeo",
   locfre = "LocFre",
   trifre = "TriFre",
   locgeo = "LocGeo",
   trigeo = "TriGeo"
 )
 
-plot_mercator_base <- function(axis_cex=1.0, latex=FALSE) {
+plot_mercator_base <- function(axis_cex=1.0, latex=TRUE) {
   plot(NA, ylim=c(0, pi), xlim=c(0, 2*pi), xlab=NA, ylab=NA, xaxt="n", yaxt="n")
   xtick <- seq(0, 2*pi, len=5)
   ytick <- seq(0, pi, len=3)
   if (latex) {
-    xticktxt <- c("$0$", "$\\frac12\\pi$", "$\\pi$", "$\\frac32\\pi$", "$2\\pi$")
-    yticktxt <- c("$0$", "$\\frac12\\pi$", "$\\pi$")
-    title(xlab="$\\varphi$", ylab="$\\vartheta$")
+    xticktxt <- expression(0, pi/2, pi, 3*pi/2, 2*pi)
+    yticktxt <- expression(0, pi/2, pi)
+    title(xlab=expression(varphi), ylab=expression(vartheta), cex.lab=axis_cex)
   } else {
     xticktxt <- c("0", "pi/2", "pi", "3pi/2", "2pi")
     yticktxt <- c("0", "pi/2", "pi")
@@ -106,7 +106,10 @@ plot_run <- function(res, rainbow=TRUE, legend=FALSE, legend_lwd=8, legend_cex=1
     legend(
       pos,
       col=c("black", method_colors[methods]),
-      legend=c("true", method_uppercamelcase[methods]), lwd=legend_lwd, cex=legend_cex, bg="white")
+      legend=c("true", method_uppercamelcase[methods]),
+      lwd=legend_lwd, cex=legend_cex,
+      bg="white",
+      text.font=2)
     par(family = par_family)
   }
 }

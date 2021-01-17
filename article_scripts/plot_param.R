@@ -25,7 +25,7 @@ all_res <- simulate(opt_list, seed=1)
 for (i in seq_along(all_res)) {
   file_name <- paste0("plot_param_", i, ".pdf")
   pdf(file_name, width=10, height=6)
-  plot_run(all_res[[c(i,1)]], legend = "topright")
+  plot_run(all_res[[c(i,1)]], legend = if (i %% 2 == 1) "topright")
   title(main=paste0("n=", opt_list[[i]]$samp$n,", sd=",format(opt_list[[i]]$samp$sd, digits=2)),
         cex.main=1.5)
   dev.off()
