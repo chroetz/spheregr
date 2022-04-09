@@ -63,6 +63,7 @@ points_mercator <- function(y_a=NULL, y=NULL, m_a=NULL, palette=rainbow, ...) {
   if (is.null(y_a)) y_a <- convert_e2a(y)
   colors <- palette(nrow(y_a))
   points(y_a[,2:1], bg=colors, col="black", ...)
+  #points(y_a[,2:1], bg=colors, col=colors, ...)
   if (!is.null(m_a)) {
     for (i in 1:nrow(m_a)) {
       wrap_line(c(y_a[i,1], m_a[i,1]), c(y_a[i,2], m_a[i,2]), col=colors[i], lwd=0.5)
@@ -71,20 +72,35 @@ points_mercator <- function(y_a=NULL, y=NULL, m_a=NULL, palette=rainbow, ...) {
 }
 
 #' @export
-plot_run <- function(res, rainbow=TRUE, legend=FALSE, legend_lwd=8, legend_cex=1.5, axis_cex=1.5) {
+plot_run <- function(res, rainbow=TRUE, legend=FALSE,
+                     legend_lwd=8, legend_cex=1.5, axis_cex=1.5,
+                     draw_truth=TRUE, draw_samples=TRUE, draw_pred=TRUE,
+                     i_marker = NULL, pch_marker = NULL) {
+  plot_mercator_base(axis_cex)
   with(res, {
     with(data, {
-      plot_mercator_base(axis_cex)
       if (rainbow) {
-        lines_mercator(m_new_a, palette=palette_const(1), lwd=8)
-        lines_mercator(m_new_a, palette=palette_rainbow, lwd=2)
-        points_mercator(y_a, m_a=m_a, palette=palette_rainbow, pch=21, cex=1.5)
+        if (draw_truth) {
+          lines_mercator(m_new_a, palette=palette_const(1), lwd=8)
+          lines_mercator(m_new_a, palette=palette_rainbow, lwd=2)
+        }
+        if (draw_samples)
+          points_mercator(y_a, m_a=m_a, palette=palette_rainbow, pch=21, cex=1.5)
       } else {
-        lines_mercator(m_new_a, palette=palette_const(1), lwd=2)
-        points_mercator(y_a, m_a=m_a, palette=palette_const(1), pch=21, cex=1.5)
+        if (draw_truth) {
+          lines_mercator(m_new_a, palette=palette_const(1), lwd=2)
+          if (length(i_marker) > 0) {
+            points_mercator(
+              m_new_a[i_marker, ],
+              palette=palette_const(1),
+              pch=pch_marker, cex=1.5)
+          }
+        }
+        if (draw_samples)
+          points_mercator(y_a, m_a=m_a, palette=palette_const(1), pch=20, cex=1.5)
       }
     })
-    for (meth in names(predict)) {
+    if (draw_pred) for (meth in names(predict)) {
       with(predict[[meth]], {
         if (rainbow) {
           lines_mercator(estim_a, palette=palette_const(method_colors[meth]), lwd=8)
@@ -92,6 +108,12 @@ plot_run <- function(res, rainbow=TRUE, legend=FALSE, legend_lwd=8, legend_cex=1
           lines_mercator(estim_a, palette=palette_rainbow, lwd=2)
         } else {
           lines_mercator(estim_a, palette=palette_const(method_colors[meth]), lwd=2)
+          if (length(i_marker) > 0) {
+            points_mercator(
+              estim_a[i_marker, ],
+              palette=palette_const(method_colors[meth]),
+              pch=pch_marker, cex=1.5)
+          }
         }
       })
     }

@@ -5,6 +5,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // get_v_rcpp
 NumericVector get_v_rcpp(NumericVector x, NumericVector a);
 RcppExport SEXP _spheregr_get_v_rcpp(SEXP xSEXP, SEXP aSEXP) {
